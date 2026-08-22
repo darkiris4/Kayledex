@@ -1,0 +1,33 @@
+state_code: IL
+name: Illinois Homeschool
+version: "1.0"
+last_verified: 2026-08-21
+source_urls:
+  - https://www.isbe.net/Documents/homeschool-faq.pdf
+disclaimer: >
+  This information is provided for convenience only and does not constitute legal
+  advice. Homeschool law can change. Verify current requirements with the Illinois
+  State Board of Education or a qualified attorney before relying on this profile
+  for compliance purposes.
+notes: >
+  Sourced from the Illinois State Board of Education's own homeschool FAQ, which
+  cites 105 ILCS 5/26-1 and People v. Levisen, 404 Ill. 574 (1950). Illinois sets no
+  minimum instructional hours or days, no testing requirement, and no registration
+  requirement under current law — the legal standard is that instruction be
+  "equivalent" to public schooling, which is qualitative, not numeric. A pending
+  bill, HB 2827, would add mandatory notification/reporting starting the 2026-27
+  school year if enacted; as of this profile's last-verified date it had stalled
+  and was not law. Re-verify this profile if that bill's status changes.
+requirements:
+  - type: required_subject
+    label: Language Arts
+  - type: required_subject
+    label: Mathematics
+  - type: required_subject
+    label: Biological and Physical Sciences
+  - type: required_subject
+    label: Social Sciences
+  - type: required_subject
+    label: Fine Arts
+  - type: required_subject
+    label: Physical Development and Health

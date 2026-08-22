@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<table>
+  <tr><th>Subject</th><th>Activities</th><th>Total Time</th><th>Assessments</th><th>Average %</th></tr>
+  {% for row in data %}
+  <tr>
+    <td>{{ row.subject_name }}</td>
+    <td>{{ row.activity_count }}</td>
+    <td>{{ (row.total_minutes // 60) }}h {{ (row.total_minutes % 60) }}m</td>
+    <td>{{ row.assessment_count }}</td>
+    <td>{{ row.average_percentage if row.average_percentage is not none else "—" }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% endblock %}

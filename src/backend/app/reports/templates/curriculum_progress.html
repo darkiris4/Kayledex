@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+<table>
+  <tr><th>Curriculum</th><th>Course</th><th>Lessons Completed</th><th>Completion %</th></tr>
+  {% for row in data %}
+  <tr>
+    <td>{{ row.curriculum_name }}</td>
+    <td>{{ row.course_name }}</td>
+    <td>{{ row.lessons_completed }} / {{ row.lessons_total }}</td>
+    <td>{{ row.completion_percentage }}%</td>
+  </tr>
+  {% endfor %}
+</table>
+{% endblock %}

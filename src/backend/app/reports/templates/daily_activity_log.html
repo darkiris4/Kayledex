@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<table>
+  <tr><th>Date</th><th>Subject</th><th>Activity</th><th>Duration</th><th>Completed</th></tr>
+  {% for row in data %}
+  <tr>
+    <td>{{ row.date }}</td>
+    <td>{{ row.subject_name }}</td>
+    <td>{{ row.activity_description }}</td>
+    <td>{{ row.duration_minutes if row.duration_minutes is not none else "—" }}</td>
+    <td>{{ "Yes" if row.completed else "No" }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% endblock %}

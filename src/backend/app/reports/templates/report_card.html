@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<table>
+  <tr><th>Course</th><th>Subject</th><th>Assessments</th><th>Average %</th><th>Grade</th></tr>
+  {% for row in data %}
+  <tr>
+    <td>{{ row.course_name }}</td>
+    <td>{{ row.subject_name }}</td>
+    <td>{{ row.assessment_count }}</td>
+    <td>{{ row.average_percentage if row.average_percentage is not none else "—" }}</td>
+    <td>{{ row.overall_letter or "—" }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% endblock %}

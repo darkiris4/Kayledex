@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="totals">
+  {{ data.total_instructional_days }} instructional days &middot;
+  {{ data.total_instructional_hours }} instructional hours
+</div>
+<table>
+  <tr>
+    {% for status, count in data.counts.items() %}
+    <th>{{ status.replace('_', ' ') | title }}</th>
+    {% endfor %}
+  </tr>
+  <tr>
+    {% for status, count in data.counts.items() %}
+    <td>{{ count }}</td>
+    {% endfor %}
+  </tr>
+</table>
+<table>
+  <tr><th>Date</th><th>Status</th><th>Instructional Minutes</th></tr>
+  {% for row in data.rows %}
+  <tr><td>{{ row.date }}</td><td>{{ row.status.replace('_', ' ') | title }}</td><td>{{ row.minutes }}</td></tr>
+  {% endfor %}
+</table>
+{% endblock %}
