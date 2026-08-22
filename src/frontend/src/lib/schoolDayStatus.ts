@@ -14,7 +14,7 @@ export const SCHOOL_DAY_STATUSES: SchoolDayStatus[] = [
 export const STATUS_LABELS: Record<SchoolDayStatus, string> = {
   instructional: "Instructional",
   partial: "Partial",
-  non_instructional: "Non-Instructional",
+  non_instructional: "Day Off",
   holiday: "Holiday",
   vacation: "Vacation",
   sick: "Sick",

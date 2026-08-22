@@ -58,12 +58,12 @@ export function Compliance() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Choose a Compliance Profile</CardTitle>
+          <CardTitle>Choose Your State's Requirements</CardTitle>
         </CardHeader>
         <CardContent className="flex items-center gap-2">
           <Select value={selectedProfileId} onValueChange={setSelectedProfileId}>
             <SelectTrigger className="w-[240px]">
-              <SelectValue placeholder="Select a state profile" />
+              <SelectValue placeholder="Select your state" />
             </SelectTrigger>
             <SelectContent>
               {profiles.map((p) => (
@@ -88,7 +88,7 @@ export function Compliance() {
       <div>
         <h2 className="text-xl font-semibold">{report.profile?.name}</h2>
         <p className="text-xs text-muted-foreground">
-          Profile version {report.profile?.version} · last verified {report.profile?.last_verified}
+          Requirements version {report.profile?.version} · last verified {report.profile?.last_verified}
         </p>
       </div>
 

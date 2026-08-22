@@ -290,8 +290,8 @@ export function Settings() {
                     setAttendanceForm((f) => ({ ...f, track_instructional_days: c === true }))
                   }
                 />
-                <FieldLabel help="Counts this school year's days toward an instructional-day total, shown on the Dashboard and checked against your state's minimum (if any) on the Compliance page.">
-                  Track instructional days
+                <FieldLabel help="Counts this school year's days toward a school-day total, shown on the Dashboard and checked against your state's minimum (if any) on the State Requirements page.">
+                  Track school days
                 </FieldLabel>
               </div>
               <div className="flex items-center gap-2">
@@ -301,14 +301,14 @@ export function Settings() {
                     setAttendanceForm((f) => ({ ...f, track_instructional_hours: c === true }))
                   }
                 />
-                <FieldLabel help="Sums logged activity durations into an instructional-hours total, used the same way as instructional days.">
-                  Track instructional hours
+                <FieldLabel help="Sums logged activity durations into an hours-logged total, used the same way as school days.">
+                  Track hours logged
                 </FieldLabel>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-2">
-                  <FieldLabel help="Only set this if your state requires a minimum number of instructional days — leave blank otherwise (Illinois sets no minimum).">
-                    Minimum instructional days
+                  <FieldLabel help="Only set this if your state requires a minimum number of school days — leave blank otherwise (Illinois sets no minimum).">
+                    Minimum school days
                   </FieldLabel>
                   <Input
                     type="number"
@@ -320,7 +320,7 @@ export function Settings() {
                   />
                 </div>
                 <div className="flex flex-col gap-2">
-                  <FieldLabel help="Only set this if your state requires a minimum number of instructional hours per day — leave blank otherwise.">
+                  <FieldLabel help="Only set this if your state requires a minimum number of hours per day — leave blank otherwise.">
                     Minimum hours/day
                   </FieldLabel>
                   <Input
@@ -432,16 +432,16 @@ export function Settings() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Compliance</CardTitle>
+          <CardTitle className="text-base">State Requirements</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground">
             {activeProfileName
-              ? `Active profile for ${schoolYear?.name}: ${activeProfileName}`
-              : "No compliance profile set for the active school year yet."}{" "}
+              ? `Active requirements for ${schoolYear?.name}: ${activeProfileName}`
+              : "No state requirements set for the active school year yet."}{" "}
             Set per school year on the{" "}
             <a href="/compliance" className="underline">
-              Compliance
+              State Requirements
             </a>{" "}
             page.
           </p>

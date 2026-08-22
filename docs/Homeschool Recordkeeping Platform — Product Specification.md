@@ -136,6 +136,23 @@ The UI is a major product requirement. It should be:
 
 The UI should avoid looking like traditional school administration software. The primary workflow should feel closer to a modern productivity application.
 
+### 5.1 UI Terminology vs. Domain Model
+
+The domain model and backend use precise, architecture-level terms (e.g. **Compliance Profile**, **Instructional Day/Hour**, **Non-Instructional**) because those names need to be exact for the code, the database schema, and state-compliance logic to stay unambiguous.
+
+The user-facing UI does not need to use the same words. Where a domain term would read as jargon to a parent, the frontend relabels it in plain language while the backend keeps its precise name. Mappings established so far:
+
+| Domain / backend term         | UI label               |
+|--------------------------------|-------------------------|
+| Compliance Profile             | State Requirements      |
+| Instructional day(s)           | School day(s)           |
+| Instructional hour(s) / time   | Hours logged / Logged   |
+| Non-instructional (status)     | Day Off                 |
+
+Formal PDF reports (§26–27) are the one deliberate exception: because those documents may be submitted to a state office or co-op, they keep the state's own official terminology (e.g. "instructional days") rather than the app's plain-language UI labels.
+
+Extend this table any time a new domain term gets a different UI label, so the two don't drift silently out of sync.
+
 ## 6. Dashboard
 
 The dashboard is the primary landing page. It should provide a quick overview of the current school year.
@@ -159,17 +176,17 @@ Today
 ──────────────────────────────────
 
 Today
-2h 05m instructional time
+2h 05m logged
 
 This Week
 5 school days
-9h 42m instructional time
+9h 42m logged
 
 This Year
-168 instructional days
+168 school days
 ```
 
-The exact visual design is implementation-specific.
+The exact visual design is implementation-specific. (Labels here follow the UI wording from §5.1, not the underlying domain terms.)
 
 ## 7. Quick Logging
 
@@ -223,7 +240,7 @@ Possible statuses should include at minimum:
 
 - Instructional
 - Partial
-- Non-instructional
+- Non-instructional (shown in the UI as "Day Off" — see §5.1)
 - Holiday
 - Vacation
 - Sick
@@ -246,15 +263,17 @@ Example:
 ```
 Attendance Settings
 
-Track instructional days       ✓
-Track instructional hours      ✓
+Track school days              ✓
+Track hours logged             ✓
 
 Minimum hours per day
 [ Configurable ]
 
-Minimum instructional days
+Minimum school days
 [ Configurable ]
 ```
+
+(UI labels per §5.1 — the underlying settings are still `track_instructional_days` / `track_instructional_hours`.)
 
 The application must not assume that every state uses a fixed number of instructional days or hours.
 
@@ -606,7 +625,7 @@ The application should include an appropriate disclaimer that compliance informa
 
 ## 25. Compliance Dashboard
 
-The application should provide a compliance overview.
+The application should provide a compliance overview. In the UI this is the **State Requirements** page (nav label and route both use that name — see §5.1).
 
 Example:
 
@@ -774,7 +793,7 @@ Settings categories:
 - **Grading** — Grade scale, Weighted grading, Letter grades
 - **Curriculum** — Curriculum tracking enabled/disabled
 - **Time Tracking** — Duration, Start/end, Disabled
-- **Compliance** — State, Compliance profile, Custom requirements
+- **Compliance** (UI label: "State Requirements" — see §5.1) — State, Compliance profile, Custom requirements
 - **Reports** — Report branding, Header, Footer, Signature information
 - **Data** — Export, Import, Backup, Restore
 

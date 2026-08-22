@@ -99,7 +99,7 @@ export function Dashboard() {
           )}
           <Separator className="my-4" />
           <p className="text-sm text-muted-foreground">
-            {formatMinutes(summary.today.total_minutes)} instructional time today
+            {formatMinutes(summary.today.total_minutes)} logged today
           </p>
         </CardContent>
       </Card>
@@ -111,7 +111,7 @@ export function Dashboard() {
           </CardHeader>
           <CardContent>
             <p>{summary.this_week.school_days} school days</p>
-            <p>{formatMinutes(summary.this_week.total_minutes)} instructional time</p>
+            <p>{formatMinutes(summary.this_week.total_minutes)} logged</p>
           </CardContent>
         </Card>
         <Card>
@@ -119,7 +119,7 @@ export function Dashboard() {
             <CardTitle>This Year</CardTitle>
           </CardHeader>
           <CardContent>
-            <p>{summary.this_year.instructional_days} instructional days</p>
+            <p>{summary.this_year.instructional_days} school days</p>
           </CardContent>
         </Card>
       </div>
