@@ -7,6 +7,7 @@ rather than mutating history in place.
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 import yaml
@@ -16,7 +17,10 @@ from sqlalchemy.orm import Session
 from app.core.db import SessionLocal
 from app.models import ComplianceProfile, ComplianceRequirement, ComplianceRequirementType
 
-COMPLIANCE_DATA_ROOT = Path("/compliance")
+# Defaults to the path baked into the Docker image (see docker/Dockerfile); overridable
+# so tests/CI can point it at the repo's own compliance/ directory without needing to
+# write to / on the host running them.
+COMPLIANCE_DATA_ROOT = Path(os.environ.get("COMPLIANCE_DATA_ROOT", "/compliance"))
 
 
 def _load_profile_file(path: Path) -> dict:

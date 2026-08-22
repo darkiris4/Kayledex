@@ -24,7 +24,9 @@ COPY src/backend/alembic ./alembic
 COPY src/backend/alembic.ini ./alembic.ini
 COPY compliance /compliance
 COPY --from=frontend-builder /frontend/dist ./static
+COPY docker/entrypoint.sh ./entrypoint.sh
+RUN chmod +x ./entrypoint.sh
 
 EXPOSE 8080
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]
+ENTRYPOINT ["./entrypoint.sh"]

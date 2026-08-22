@@ -15,6 +15,7 @@ services:
       retries: 10
 
   app:
+    image: ${APP_IMAGE:-ghcr.io/darkiris4/kayledex:latest}
     build:
       context: .
       dockerfile: docker/Dockerfile
@@ -27,7 +28,6 @@ services:
       - "${APP_PORT}:8080"
     volumes:
       - ./attachments:/data/attachments
-      - ./src/backend/alembic:/app/alembic
     depends_on:
       postgres:
         condition: service_healthy
