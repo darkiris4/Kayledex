@@ -33,7 +33,7 @@ function FieldLabel({ children, help }: { children: React.ReactNode; help: strin
 // (dark accents there are much lighter, L≈0.75, to pair with near-black button text) —
 // so the picker preview always matches what the currently active mode will apply.
 const ACCENT_OPTIONS: { value: Accent; label: string; swatch: string }[] = [
-  { value: "default", label: "Default", swatch: "bg-zinc-500 dark:bg-zinc-300" },
+  { value: "default", label: "Kayledex", swatch: "bg-[#0080A2] dark:bg-[#25C0E6]" },
   { value: "blue", label: "Blue", swatch: "bg-blue-600 dark:bg-blue-400" },
   { value: "green", label: "Green", swatch: "bg-emerald-600 dark:bg-emerald-400" },
   { value: "purple", label: "Purple", swatch: "bg-purple-600 dark:bg-purple-400" },

@@ -35,10 +35,11 @@ export function Dashboard() {
   if (students.length === 0) {
     return (
       <Card>
-        <CardHeader>
+        <CardHeader className="items-center text-center">
+          <img src="/logo.png" alt="" className="mb-2 h-16 w-16" />
           <CardTitle>No students yet</CardTitle>
         </CardHeader>
-        <CardContent className="text-muted-foreground">
+        <CardContent className="text-center text-muted-foreground">
           Add a family and a student to get started.
         </CardContent>
       </Card>

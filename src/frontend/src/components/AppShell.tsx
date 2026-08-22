@@ -18,7 +18,10 @@ export function AppShell({ children }: { children: ReactNode }) {
       <header className="border-b">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
           <div className="flex items-center gap-6">
-            <h1 className="text-lg font-semibold">Homeschool</h1>
+            <div className="flex items-center gap-2">
+              <img src="/logo.png" alt="" className="h-9 w-9" />
+              <h1 className="text-lg font-bold text-primary">KAYLEDEX</h1>
+            </div>
             <nav className="flex gap-4">
               {NAV_ITEMS.map((item) => (
                 <NavLink
