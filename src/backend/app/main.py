@@ -12,6 +12,7 @@ from app.api import (
     course,
     curriculum,
     dashboard,
+    export,
     family,
     grade_scale,
     instruction_record,
@@ -56,6 +57,7 @@ app.include_router(assessment.router)
 app.include_router(compliance.router)
 app.include_router(reports.router)
 app.include_router(attachment.router)
+app.include_router(export.router)
 
 
 @app.get("/api/health")
