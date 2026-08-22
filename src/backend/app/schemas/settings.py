@@ -12,6 +12,7 @@ class SettingsUpdate(BaseModel):
     curriculum_tracking_enabled: bool | None = None
     active_grade_scale_id: uuid.UUID | None = None
     report_branding_logo_path: str | None = None
+    report_branding_enabled: bool | None = None
     report_footer_text: str | None = None
     parent_educator_name: str | None = None
 
@@ -25,5 +26,6 @@ class SettingsRead(BaseModel):
     curriculum_tracking_enabled: bool
     active_grade_scale_id: uuid.UUID | None
     report_branding_logo_path: str | None
+    report_branding_enabled: bool
     report_footer_text: str | None
     parent_educator_name: str | None

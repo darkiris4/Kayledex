@@ -189,6 +189,7 @@ export interface Settings {
   curriculum_tracking_enabled: boolean
   active_grade_scale_id: string | null
   report_branding_logo_path: string | null
+  report_branding_enabled: boolean
   report_footer_text: string | null
   parent_educator_name: string | null
 }
@@ -384,6 +385,21 @@ export const api = {
         method: "PATCH",
         body: JSON.stringify(data),
       }),
+    uploadReportLogo: async (familyId: string, file: File): Promise<Settings> => {
+      const formData = new FormData()
+      formData.append("file", file)
+      const res = await fetch(`/api/settings/report-logo?family_id=${familyId}`, {
+        method: "POST",
+        body: formData,
+      })
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({ detail: res.statusText }))
+        throw new ApiError(res.status, body.detail ?? res.statusText)
+      }
+      return res.json() as Promise<Settings>
+    },
+    deleteReportLogo: (familyId: string) =>
+      request<Settings>(`/settings/report-logo?family_id=${familyId}`, { method: "DELETE" }),
   },
 }
 

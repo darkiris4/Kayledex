@@ -5,12 +5,15 @@ lookups, curriculum completion) so every report format sees identical numbers.
 
 from __future__ import annotations
 
+import base64
 import uuid
 from datetime import date, datetime, timezone
+from pathlib import Path
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from app.core.config import settings as app_config
 from app.core.grading import compute_grade
 from app.models import (
     Assessment,
@@ -26,8 +29,32 @@ from app.models import (
     Student,
     Subject,
 )
+from app.models import Settings as FamilySettings
 
 ATTENDANCE_STATUSES = (SchoolDayStatus.instructional, SchoolDayStatus.partial)
+
+DEFAULT_LOGO_PATH = Path(__file__).parent / "assets" / "kayledex-logo-full.png"
+
+
+def _file_to_data_uri(path: Path) -> str:
+    mime = "image/png" if path.suffix.lower() == ".png" else "image/jpeg"
+    data = base64.b64encode(path.read_bytes()).decode("ascii")
+    return f"data:{mime};base64,{data}"
+
+
+def _resolve_logo_data_uri(family_id: uuid.UUID, db: Session) -> str | None:
+    """Family's own uploaded logo wins if set; otherwise the bundled Kayledex mark,
+    unless the family turned report branding off entirely (Settings page)."""
+    settings_row = db.query(FamilySettings).filter(FamilySettings.family_id == family_id).first()
+    if settings_row and not settings_row.report_branding_enabled:
+        return None
+    if settings_row and settings_row.report_branding_logo_path:
+        custom_path = Path(app_config.attachments_dir) / settings_row.report_branding_logo_path
+        if custom_path.is_file():
+            return _file_to_data_uri(custom_path)
+    if DEFAULT_LOGO_PATH.is_file():
+        return _file_to_data_uri(DEFAULT_LOGO_PATH)
+    return None
 
 
 def report_header(school_year: SchoolYear, db: Session) -> dict:
@@ -39,6 +66,7 @@ def report_header(school_year: SchoolYear, db: Session) -> dict:
         "grade": student.grade_level if student else None,
         "school_year_name": school_year.name,
         "generated_date": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+        "logo_data_uri": _resolve_logo_data_uri(family.id, db) if family else None,
     }
 
 

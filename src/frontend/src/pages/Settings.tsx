@@ -186,6 +186,24 @@ export function Settings() {
     load()
   }
 
+  async function toggleReportBranding(enabled: boolean) {
+    if (!activeStudent) return
+    await api.settings.update(activeStudent.family_id, { report_branding_enabled: enabled })
+    load()
+  }
+
+  async function uploadReportLogo(file: File) {
+    if (!activeStudent) return
+    await api.settings.uploadReportLogo(activeStudent.family_id, file)
+    load()
+  }
+
+  async function removeReportLogo() {
+    if (!activeStudent) return
+    await api.settings.deleteReportLogo(activeStudent.family_id)
+    load()
+  }
+
   if (!activeStudent || !family || !settings) return null
 
   const activeProfileName = schoolYear?.compliance_profile_id
@@ -453,6 +471,44 @@ export function Settings() {
           <CardTitle className="text-base">Report Branding</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
+          <div className="flex items-center gap-2">
+            <Checkbox
+              checked={settings.report_branding_enabled}
+              onCheckedChange={(c) => toggleReportBranding(c === true)}
+            />
+            <FieldLabel help="Shows a small logo mark in the corner of every generated PDF report — the Kayledex mark by default, or your own logo if you upload one below.">
+              Show logo on reports
+            </FieldLabel>
+          </div>
+          <div className="flex flex-col gap-2">
+            <FieldLabel help="Replaces the default Kayledex mark on reports with your own family or co-op logo. Remove it to go back to the Kayledex default.">
+              Report Logo
+            </FieldLabel>
+            <div className="flex items-center gap-3">
+              {settings.report_branding_logo_path ? (
+                <>
+                  <span className="text-sm text-muted-foreground">Custom logo uploaded</span>
+                  <Button size="sm" variant="outline" onClick={removeReportLogo}>
+                    Remove
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <span className="text-sm text-muted-foreground">Using the Kayledex default</span>
+                  <Input
+                    type="file"
+                    accept="image/png,image/jpeg,image/gif,image/webp"
+                    className="max-w-64"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0]
+                      if (file) uploadReportLogo(file)
+                      e.target.value = ""
+                    }}
+                  />
+                </>
+              )}
+            </div>
+          </div>
           <div className="flex flex-col gap-2">
             <FieldLabel help="Shown on every generated PDF report.">Parent/Educator Name</FieldLabel>
             <Input

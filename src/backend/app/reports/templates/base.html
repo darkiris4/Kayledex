@@ -20,10 +20,15 @@
   th { background: #f2f2f2; }
   .totals { margin-top: 12px; font-weight: bold; }
   .disclaimer { margin-top: 24px; font-size: 8px; color: #888; }
+  .report-header { display: flex; justify-content: space-between; align-items: flex-start; }
+  .report-logo { height: 44px; width: auto; max-width: 140px; margin-left: 12px; flex-shrink: 0; }
 </style>
 </head>
 <body>
-  <h1>{{ title }}</h1>
+  <div class="report-header">
+    <h1>{{ title }}</h1>
+    {% if logo_data_uri %}<img class="report-logo" src="{{ logo_data_uri }}">{% endif %}
+  </div>
   <div class="meta">
     {{ family_name }} &mdash; {{ student_name }}{% if grade %} ({{ grade }}){% endif %}<br>
     School Year: {{ school_year_name }}<br>

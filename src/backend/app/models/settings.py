@@ -27,6 +27,7 @@ class Settings(Base, UUIDPKMixin, TimestampMixin):
         ForeignKey("grade_scales.id"), default=None
     )
     report_branding_logo_path: Mapped[str | None] = mapped_column(String(500), default=None)
+    report_branding_enabled: Mapped[bool] = mapped_column(Boolean, default=True, server_default="true")
     report_footer_text: Mapped[str | None] = mapped_column(String(500), default=None)
     parent_educator_name: Mapped[str | None] = mapped_column(String(200), default=None)
 
