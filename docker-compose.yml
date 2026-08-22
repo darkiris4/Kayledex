@@ -16,9 +16,7 @@ services:
 
   app:
     image: ${APP_IMAGE:-ghcr.io/darkiris4/kayledex:latest}
-    build:
-      context: .
-      dockerfile: docker/Dockerfile
+    pull_policy: always
     restart: unless-stopped
     environment:
       DATABASE_URL: ${DATABASE_URL}

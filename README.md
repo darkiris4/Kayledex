@@ -28,18 +28,11 @@ Early development, but the core loop works end-to-end for a single family: log a
 ## Running it
 
 Every push to `main` is scanned, tested, and published as a container image to
-`ghcr.io/darkiris4/kayledex`. Pull the built image:
+`ghcr.io/darkiris4/kayledex`. `docker-compose.yml` always pulls that image:
 
 ```bash
 cp .env.example .env
 docker compose up -d
-```
-
-Or build from source instead (useful when developing against local changes):
-
-```bash
-cp .env.example .env
-docker compose up -d --build
 ```
 
 App will be available at `http://localhost:8080` (health check: `/api/health`).
