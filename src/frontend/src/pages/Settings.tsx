@@ -55,7 +55,7 @@ const BACKGROUND_OPTIONS: { value: Background; label: string; swatch: string }[]
 ]
 
 export function Settings() {
-  const { activeStudent } = useStudents()
+  const { activeStudent, students, loading: studentsLoading } = useStudents()
   const { accent, setAccent, background, setBackground } = useTheme()
   const [family, setFamily] = useState<Family | null>(null)
   const [settings, setSettings] = useState<SettingsType | null>(null)
@@ -202,6 +202,21 @@ export function Settings() {
     if (!activeStudent) return
     await api.settings.deleteReportLogo(activeStudent.family_id)
     load()
+  }
+
+  if (studentsLoading) return null
+
+  if (students.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>No students yet</CardTitle>
+        </CardHeader>
+        <CardContent className="text-muted-foreground">
+          Add a family and a student to get started.
+        </CardContent>
+      </Card>
+    )
   }
 
   if (!activeStudent || !family || !settings) return null
@@ -530,6 +545,56 @@ export function Settings() {
           <Button size="sm" className="self-start" onClick={saveBranding} disabled={savingBranding}>
             {savingBranding ? "Saving…" : "Save"}
           </Button>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Data</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-3">
+          <div className="flex flex-col gap-2">
+            <FieldLabel help="The genuinely complete backup: every record (students, school years, subjects, courses, curricula, lessons, school days, logged activities, assessments, grade scales, settings) plus the real files behind every attachment — a photo of a worksheet, a scanned test. Use this one to actually back up or move installations.">
+              Full Backup (ZIP)
+            </FieldLabel>
+            <Button asChild size="sm" className="self-start">
+              <a href={`/api/export/backup?family_id=${activeStudent.family_id}`}>Download Backup</a>
+            </Button>
+          </div>
+          <div className="flex flex-col gap-2">
+            <FieldLabel help="The same structured data as the Full Backup, but data only — attachment files (worksheet photos, scanned tests) are listed by name, not included. Useful for inspecting or re-importing the data itself; use the ZIP above if you need the attachments too.">
+              Data Only (JSON)
+            </FieldLabel>
+            <Button asChild size="sm" variant="outline" className="self-start">
+              <a href={`/api/export/json?family_id=${activeStudent.family_id}`}>Download JSON</a>
+            </Button>
+          </div>
+          <div className="flex flex-col gap-2">
+            <FieldLabel help="One CSV file per entity type, for opening in a spreadsheet or importing elsewhere. Same data-only caveat as JSON — no attachment files.">
+              Export by Entity (CSV)
+            </FieldLabel>
+            <div className="flex flex-wrap gap-2">
+              {[
+                { entity: "subjects", label: "Subjects" },
+                { entity: "students", label: "Students" },
+                { entity: "school_years", label: "School Years" },
+                { entity: "assessments", label: "Assessments" },
+                { entity: "instruction_records", label: "Activities" },
+                { entity: "school_days", label: "Attendance" },
+              ].map(({ entity, label }) => (
+                <Button key={entity} asChild size="sm" variant="outline">
+                  <a href={`/api/export/csv/${entity}?family_id=${activeStudent.family_id}`}>
+                    {label}
+                  </a>
+                </Button>
+              ))}
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            For a whole-server backup (every family, via <code>pg_dump</code>) rather than
+            just this family, run <code>scripts/backup.sh</code> on the server. See the README
+            for restore steps.
+          </p>
         </CardContent>
       </Card>
     </div>

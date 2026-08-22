@@ -20,3 +20,11 @@ export function endOfMonth(d: Date): Date {
 export function addMonths(d: Date, count: number): Date {
   return new Date(d.getFullYear(), d.getMonth() + count, 1)
 }
+
+// e.g. ("2026-08-01", "2027-05-31") -> "2026-2027". Splitting the string directly
+// rather than parsing with `new Date()` avoids the same UTC-midnight shift.
+export function deriveSchoolYearName(startDate: string, endDate: string): string {
+  const startYear = startDate.split("-")[0]
+  const endYear = endDate.split("-")[0]
+  return startYear === endYear ? startYear : `${startYear}-${endYear}`
+}

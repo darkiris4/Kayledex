@@ -202,6 +202,23 @@ export interface ComplianceProfileSummary {
   last_verified: string
 }
 
+export interface ComplianceRequirement {
+  id: string
+  type: string
+  label: string
+  description: string | null
+  numeric_value: number | null
+  notes: string | null
+  mapped_subject_ids: string[]
+}
+
+export interface ComplianceProfileDetail extends ComplianceProfileSummary {
+  source_urls: string[]
+  disclaimer: string
+  notes: string | null
+  requirements: ComplianceRequirement[]
+}
+
 export interface ComplianceRequirementResult {
   requirement_id: string
   type: string
@@ -262,16 +279,23 @@ export const api = {
       request<Student[]>(`/students${familyId ? `?family_id=${familyId}` : ""}`),
     create: (data: Partial<Student>) =>
       request<Student>("/students", { method: "POST", body: JSON.stringify(data) }),
+    update: (id: string, data: Partial<Student>) =>
+      request<Student>(`/students/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
   },
   schoolYears: {
     list: (studentId?: string) =>
       request<SchoolYear[]>(`/school-years${studentId ? `?student_id=${studentId}` : ""}`),
+    create: (data: Partial<SchoolYear>) =>
+      request<SchoolYear>("/school-years", { method: "POST", body: JSON.stringify(data) }),
     update: (id: string, data: Partial<SchoolYear>) =>
       request<SchoolYear>(`/school-years/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
   },
   subjects: {
     list: (familyId?: string) =>
       request<Subject[]>(`/subjects${familyId ? `?family_id=${familyId}` : ""}`),
+    create: (data: Partial<Subject>) =>
+      request<Subject>("/subjects", { method: "POST", body: JSON.stringify(data) }),
+    delete: (id: string) => request<void>(`/subjects/${id}`, { method: "DELETE" }),
   },
   quickLog: {
     create: (data: {
@@ -283,6 +307,21 @@ export const api = {
       completed?: boolean
       notes?: string
     }) => request<InstructionRecord>("/quick-log", { method: "POST", body: JSON.stringify(data) }),
+    bulkCreate: (data: {
+      student_id: string
+      subject_id: string
+      start_date: string
+      end_date: string
+      weekdays: number[]
+      activity_description?: string
+      duration_minutes?: number
+      completed?: boolean
+      notes?: string
+    }) =>
+      request<{ created_count: number; skipped_dates: string[] }>("/quick-log/bulk", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
   },
   schoolDays: {
     list: (params: { school_year_id?: string; start?: string; end?: string }) => {
@@ -346,6 +385,8 @@ export const api = {
   },
   compliance: {
     listProfiles: () => request<ComplianceProfileSummary[]>("/compliance/profiles"),
+    getProfile: (profileId: string) =>
+      request<ComplianceProfileDetail>(`/compliance/profiles/${profileId}`),
     getReport: (schoolYearId: string) =>
       request<ComplianceReport>(`/compliance/report?school_year_id=${schoolYearId}`),
     mapSubject: (requirementId: string, subjectId: string) =>

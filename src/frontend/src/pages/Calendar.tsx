@@ -7,6 +7,7 @@ import { formatMinutes } from "@/lib/format"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { DayDetailDialog } from "@/components/DayDetailDialog"
+import { CatchUpDialog } from "@/components/CatchUpDialog"
 
 const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 
@@ -71,6 +72,7 @@ export function Calendar() {
           {month.toLocaleDateString(undefined, { month: "long", year: "numeric" })}
         </h2>
         <div className="flex gap-2">
+          <CatchUpDialog onLogged={reloadSchoolDays} />
           <Button variant="outline" size="sm" onClick={() => setMonth((m) => addMonths(m, -1))}>
             ← Prev
           </Button>

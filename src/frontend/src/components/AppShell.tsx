@@ -9,6 +9,7 @@ const NAV_ITEMS = [
   { to: "/academics", label: "Academics", end: false },
   { to: "/compliance", label: "State Requirements", end: false },
   { to: "/reports", label: "Reports", end: false },
+  { to: "/students", label: "Students", end: false },
   { to: "/settings", label: "Settings", end: false },
 ]
 
