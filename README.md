@@ -1,10 +1,28 @@
-# Homeschool Recordkeeping Platform
+# Kayledex
 
-Self-hosted, FOSS homeschool recordkeeping and reporting app. Full product spec: [`docs/Homeschool Recordkeeping Platform — Product Specification.md`](docs/Homeschool%20Recordkeeping%20Platform%20—%20Product%20Specification.md).
+<p align="center">
+  <img src="docs/branding/kayledex.jpeg" alt="Kayledex" width="480">
+</p>
+
+Self-hosted, open-source homeschool recordkeeping and academic management platform. Kayledex is built around one idea: **recording a normal homeschool day should take seconds**, while the reports it produces should look professional enough to hand to a state office, umbrella school, or co-op. Full product spec: [`docs/Homeschool Recordkeeping Platform — Product Specification.md`](docs/Homeschool%20Recordkeeping%20Platform%20—%20Product%20Specification.md).
+
+## Features
+
+- **Quick daily logging** — record a subject, activity, and duration in seconds, with or without an attached curriculum; past days remain fully editable
+- **Multiple students, school years, and subjects** — flexible enough for mixed curricula, self-created lessons, field trips, and informal instruction
+- **Courses, curricula, and lessons** with progress tracking — curriculum is entirely optional per activity
+- **Grades and assessments**, with a configurable grading scale and weighted categories
+- **Attendance tracking** by instructional days and/or hours — configurable per school year, not hard-coded to any one state's rules
+- **State compliance profiles** (Illinois shipped; more contributable under `compliance/US/<state>/`, each sourced and versioned) — a State Requirements page shows what's satisfied and what isn't
+- **File attachments** on activities and assessments (photos of worksheets, scanned assignments, PDFs)
+- **PDF and CSV reports** — attendance, subject activity, academic report card, curriculum progress, daily activity log — each PDF branded with your own logo or the Kayledex mark by default (configurable in Settings)
+- **Calendar** view of the school year, with per-day status (instructional, holiday, sick, field trip, etc.)
+- **Light/dark theme** with a few accent-color and background presets
+- Runs entirely offline: no cloud account, no external APIs, no telemetry — your data stays in your own PostgreSQL database
 
 ## Status
 
-Early development. See `docker-compose.yml` for the two-service deployment shape (app + PostgreSQL) — no other infrastructure required.
+Early development, but the core loop works end-to-end for a single family: log a day, track curriculum and grades, check compliance, generate a report. Not yet built: global search, data export/import (JSON backup, restore), transcripts, portfolio reports, and multi-family/authenticated deployments — see the spec's MVP and Post-MVP sections (§42–43) for the full roadmap.
 
 ## Running locally
 
@@ -20,6 +38,7 @@ App will be available at `http://localhost:8080` (health check: `/api/health`).
 - `src/backend/` — FastAPI application
 - `src/frontend/` — React/TypeScript frontend
 - `compliance/US/<state>/` — sourced, versioned state compliance profiles
+- `docs/branding/` — logo source art
 - `attachments/` — bind-mounted upload storage (not committed)
 - `docker/` — Dockerfile (multi-stage: Node builds the frontend, Python serves both the API and the built frontend as static files)
 
