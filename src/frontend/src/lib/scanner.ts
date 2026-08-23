@@ -60,8 +60,16 @@ export function loadScanner(onProgress?: (fraction: number) => void): Promise<vo
     // than reporting 50% after the tiny file and 50% for the huge one.
     await loadScriptWithProgress("/vendor/opencv.js", (f) => onProgress?.(f * 0.97))
     // opencv.js's UMD build assigns window.cv synchronously, but the WASM runtime
-    // underneath initializes asynchronously - cv.Mat etc. aren't usable until then.
-    if (!window.cv.Mat) {
+    // underneath initializes asynchronously. If it hasn't finished by the time the
+    // script's own top-level code returns (virtually guaranteed for a ~13MB WASM
+    // bundle), window.cv is actually a Promise that resolves to the real module —
+    // NOT the module itself. Awaiting it is required, not optional: assigning
+    // onRuntimeInitialized onto that Promise object is a silent no-op, since the
+    // runtime looks for that callback on its own internal Module object, not on
+    // whatever a caller happens to hold — which is exactly what hung at 97% here.
+    if (window.cv instanceof Promise) {
+      window.cv = await window.cv
+    } else if (!window.cv.Mat) {
       await new Promise<void>((resolve) => {
         window.cv.onRuntimeInitialized = () => resolve()
       })
