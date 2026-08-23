@@ -1,7 +1,15 @@
 import { useEffect, useState } from "react"
-import { api, type InstructionRecord, type SchoolDay, type SchoolDayStatus } from "@/lib/api"
+import {
+  api,
+  type Assessment,
+  type InstructionRecord,
+  type SchoolDay,
+  type SchoolDayStatus,
+  type Subject,
+} from "@/lib/api"
 import { STATUS_LABELS, SCHOOL_DAY_STATUSES } from "@/lib/schoolDayStatus"
 import { formatMinutes } from "@/lib/format"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -12,10 +20,13 @@ import {
 } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { LogActivityDialog } from "@/components/LogActivityDialog"
+import { AddAssessmentDialog } from "@/components/AddAssessmentDialog"
 import { AttachmentManager } from "@/components/AttachmentManager"
 
 interface DayDetailDialogProps {
   date: string
+  studentId: string
+  familyId: string
   schoolYearId: string
   schoolDay: SchoolDay | undefined
   open: boolean
@@ -25,6 +36,8 @@ interface DayDetailDialogProps {
 
 export function DayDetailDialog({
   date,
+  studentId,
+  familyId,
   schoolYearId,
   schoolDay,
   open,
@@ -32,6 +45,8 @@ export function DayDetailDialog({
   onChanged,
 }: DayDetailDialogProps) {
   const [records, setRecords] = useState<InstructionRecord[]>([])
+  const [assessments, setAssessments] = useState<Assessment[]>([])
+  const [subjects, setSubjects] = useState<Subject[]>([])
   const [savingStatus, setSavingStatus] = useState(false)
   const [logDialogOpen, setLogDialogOpen] = useState(false)
 
@@ -42,6 +57,24 @@ export function DayDetailDialog({
     }
     api.instructionRecords.list(schoolDay.id).then(setRecords)
   }, [open, schoolDay])
+
+  // Assessments are keyed by student + date, not by SchoolDay, so a test logged on a
+  // day with no SchoolDay row yet (e.g. a weekend never marked instructional) still
+  // needs to show up here.
+  const reloadAssessments = () => {
+    if (!open) return
+    api.assessments.list(studentId, date).then(setAssessments)
+  }
+
+  useEffect(() => {
+    reloadAssessments()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, studentId, date])
+
+  useEffect(() => {
+    if (!open) return
+    api.subjects.list(familyId).then(setSubjects)
+  }, [open, familyId])
 
   async function handleStatusChange(status: SchoolDayStatus) {
     setSavingStatus(true)
@@ -62,6 +95,12 @@ export function DayDetailDialog({
     await api.instructionRecords.delete(id)
     setRecords((prev) => prev.filter((r) => r.id !== id))
     onChanged()
+  }
+
+  async function handleDeleteAssessment(id: string) {
+    if (!window.confirm("Remove this assessment?")) return
+    await api.assessments.delete(id)
+    setAssessments((prev) => prev.filter((a) => a.id !== id))
   }
 
   return (
@@ -97,7 +136,7 @@ export function DayDetailDialog({
                 <ul className="flex flex-col gap-3">
                   {records.map((record) => (
                     <li key={record.id} className="flex flex-col gap-1 text-sm">
-                      <div className="flex items-center justify-between">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
                         <span>
                           {record.completed ? "✓" : "○"} {record.activity_description ?? "Activity"}
                           {record.duration_minutes != null ? ` (${formatMinutes(record.duration_minutes)})` : ""}
@@ -120,6 +159,61 @@ export function DayDetailDialog({
                 Nothing recorded for this day yet.
               </p>
             )}
+
+            <div className="flex flex-col gap-2 border-t pt-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="text-sm font-medium text-muted-foreground">Assessments</span>
+                <AddAssessmentDialog
+                  studentId={studentId}
+                  subjects={subjects}
+                  defaultDate={date}
+                  onAdded={reloadAssessments}
+                  trigger={
+                    <Button size="sm" variant="outline">
+                      + Log Assessment
+                    </Button>
+                  }
+                />
+              </div>
+              {assessments.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No assessments logged.</p>
+              ) : (
+                <ul className="flex flex-col gap-3">
+                  {assessments.map((assessment) => {
+                    const subjectName = subjects.find((s) => s.id === assessment.subject_id)?.name
+                    return (
+                      <li key={assessment.id} className="flex flex-col gap-1 text-sm">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <span>
+                            {subjectName ? `${subjectName}: ` : ""}
+                            {assessment.name}
+                            {assessment.points_earned != null && assessment.points_possible != null
+                              ? ` (${assessment.points_earned}/${assessment.points_possible})`
+                              : ""}
+                          </span>
+                          <div className="flex items-center gap-2">
+                            {assessment.percentage != null && (
+                              <Badge variant="secondary">
+                                {assessment.percentage}%
+                                {assessment.letter_grade ? ` · ${assessment.letter_grade}` : ""}
+                              </Badge>
+                            )}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDeleteAssessment(assessment.id)}
+                            >
+                              Remove
+                            </Button>
+                          </div>
+                        </div>
+                        <AttachmentManager associatedType="assessment" associatedId={assessment.id} />
+                      </li>
+                    )
+                  })}
+                </ul>
+              )}
+            </div>
           </div>
 
           <DialogFooter>

@@ -393,7 +393,10 @@ export const api = {
     }) => request<GradeScale>("/grade-scales", { method: "POST", body: JSON.stringify(data) }),
   },
   assessments: {
-    list: (studentId: string) => request<Assessment[]>(`/assessments?student_id=${studentId}`),
+    list: (studentId: string, date?: string) =>
+      request<Assessment[]>(
+        `/assessments?student_id=${studentId}${date ? `&date=${date}` : ""}`,
+      ),
     create: (data: Partial<Assessment>) =>
       request<Assessment>("/assessments", { method: "POST", body: JSON.stringify(data) }),
     delete: (id: string) => request<void>(`/assessments/${id}`, { method: "DELETE" }),

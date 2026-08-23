@@ -172,6 +172,8 @@ export function Calendar() {
       {selectedDate && activeSchoolYear && (
         <DayDetailDialog
           date={selectedDate}
+          studentId={activeStudent.id}
+          familyId={activeStudent.family_id}
           schoolYearId={activeSchoolYear.id}
           schoolDay={selectedSchoolDay}
           open={selectedDate !== null}

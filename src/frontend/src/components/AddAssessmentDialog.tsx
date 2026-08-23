@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { api, type AssessmentType, type Subject } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -20,17 +20,29 @@ interface AddAssessmentDialogProps {
   studentId: string
   subjects: Subject[]
   onAdded: () => void
+  defaultDate?: string
+  trigger?: React.ReactNode
 }
 
-export function AddAssessmentDialog({ studentId, subjects, onAdded }: AddAssessmentDialogProps) {
+export function AddAssessmentDialog({
+  studentId,
+  subjects,
+  onAdded,
+  defaultDate,
+  trigger,
+}: AddAssessmentDialogProps) {
   const [open, setOpen] = useState(false)
   const [subjectId, setSubjectId] = useState("")
   const [name, setName] = useState("")
-  const [date, setDate] = useState(() => toDateString(new Date()))
+  const [date, setDate] = useState(() => defaultDate ?? toDateString(new Date()))
   const [type, setType] = useState<AssessmentType>("test")
   const [pointsEarned, setPointsEarned] = useState("")
   const [pointsPossible, setPointsPossible] = useState("")
   const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    if (open) setDate(defaultDate ?? toDateString(new Date()))
+  }, [open, defaultDate])
 
   async function handleSave() {
     if (!subjectId || !name) return
@@ -58,7 +70,7 @@ export function AddAssessmentDialog({ studentId, subjects, onAdded }: AddAssessm
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm">+ Add Assessment</Button>
+        {trigger ?? <Button size="sm">+ Add Assessment</Button>}
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>

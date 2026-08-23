@@ -1,4 +1,5 @@
 import uuid
+from datetime import date as date_type
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -37,6 +38,7 @@ def _to_read(assessment: Assessment, db: Session) -> AssessmentRead:
 def list_assessments(
     student_id: uuid.UUID | None = None,
     subject_id: uuid.UUID | None = None,
+    date: date_type | None = None,
     db: Session = Depends(get_db),
 ):
     query = db.query(Assessment)
@@ -44,6 +46,8 @@ def list_assessments(
         query = query.filter(Assessment.student_id == student_id)
     if subject_id is not None:
         query = query.filter(Assessment.subject_id == subject_id)
+    if date is not None:
+        query = query.filter(Assessment.date == date)
     return [_to_read(a, db) for a in query.order_by(Assessment.date.desc()).all()]
 
 
