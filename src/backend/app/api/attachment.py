@@ -93,6 +93,21 @@ def download_attachment(attachment_id: uuid.UUID, db: Session = Depends(get_db))
     return FileResponse(file_path, media_type=attachment.content_type, filename=attachment.filename)
 
 
+@router.get("/{attachment_id}/preview")
+def preview_attachment(attachment_id: uuid.UUID, db: Session = Depends(get_db)):
+    """Same file as /download, but without a filename — Starlette only sets
+    Content-Disposition: attachment (forcing a save-file prompt) when a filename is
+    given, so omitting it here lets the browser render the file inline instead.
+    """
+    attachment = db.get(Attachment, attachment_id)
+    if not attachment:
+        raise HTTPException(404, "Attachment not found")
+    file_path = Path(settings.attachments_dir) / attachment.storage_path
+    if not file_path.is_file():
+        raise HTTPException(410, "File no longer exists on disk")
+    return FileResponse(file_path, media_type=attachment.content_type)
+
+
 @router.delete("/{attachment_id}", status_code=204)
 def delete_attachment(attachment_id: uuid.UUID, db: Session = Depends(get_db)):
     attachment = db.get(Attachment, attachment_id)

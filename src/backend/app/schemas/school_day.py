@@ -31,7 +31,9 @@ class SchoolDayRead(SchoolDayBase):
 
 
 class SchoolDaySummaryRead(SchoolDayRead):
-    """SchoolDayRead plus the day's total logged instructional minutes — a calendar-view
-    read model, not a stored field (attendance stays computed, not duplicated)."""
+    """SchoolDayRead plus the day's total logged instructional minutes and whether an
+    assessment falls on this date — a calendar-view read model, not stored fields
+    (attendance and this indicator stay computed, not duplicated)."""
 
     total_minutes: int
+    has_assessment: bool

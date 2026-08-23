@@ -6,7 +6,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.core.db import get_db
-from app.models import InstructionRecord, SchoolDay
+from app.models import Assessment, InstructionRecord, SchoolDay, SchoolDayStatus, SchoolYear
 from app.schemas.school_day import (
     SchoolDayCreate,
     SchoolDayRead,
@@ -15,6 +15,35 @@ from app.schemas.school_day import (
 )
 
 router = APIRouter(prefix="/api/school-days", tags=["school-days"])
+
+
+def get_or_create_school_day(student_id: uuid.UUID, date: date, db: Session) -> SchoolDay | None:
+    """Shared by quick-log and assessment creation: a logged activity or assessment on
+    a given date should count that day as a school day without a separate manual step.
+    Returns None (rather than raising) when no school year covers the date, so a bulk
+    catch-up run — or an assessment logged for an out-of-year date — can skip it
+    instead of failing outright.
+    """
+    school_year = db.scalar(
+        select(SchoolYear).where(
+            SchoolYear.student_id == student_id,
+            SchoolYear.start_date <= date,
+            SchoolYear.end_date >= date,
+        )
+    )
+    if not school_year:
+        return None
+
+    school_day = db.scalar(
+        select(SchoolDay).where(SchoolDay.school_year_id == school_year.id, SchoolDay.date == date)
+    )
+    if not school_day:
+        school_day = SchoolDay(
+            school_year_id=school_year.id, date=date, status=SchoolDayStatus.instructional
+        )
+        db.add(school_day)
+        db.flush()
+    return school_day
 
 
 @router.get("", response_model=list[SchoolDayRead])
@@ -53,6 +82,22 @@ def list_school_days_summary(
         .group_by(SchoolDay.id)
         .order_by(SchoolDay.date)
     ).all()
+
+    school_year = db.get(SchoolYear, school_year_id)
+    assessment_dates = (
+        set(
+            db.scalars(
+                select(Assessment.date).where(
+                    Assessment.student_id == school_year.student_id,
+                    Assessment.date >= start,
+                    Assessment.date <= end,
+                )
+            ).all()
+        )
+        if school_year
+        else set()
+    )
+
     return [
         SchoolDaySummaryRead(
             id=school_day.id,
@@ -61,6 +106,7 @@ def list_school_days_summary(
             status=school_day.status,
             notes=school_day.notes,
             total_minutes=total_minutes,
+            has_assessment=school_day.date in assessment_dates,
         )
         for school_day, total_minutes in rows
     ]

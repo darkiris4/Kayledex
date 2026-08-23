@@ -2,10 +2,12 @@ import uuid
 from datetime import date as date_type
 
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.api.attachment import delete_attachments_for
 from app.core.db import get_db
-from app.models import SchoolYear
+from app.models import AttachmentAssociationType, InstructionRecord, SchoolDay, SchoolYear
 from app.schemas.school_year import SchoolYearCreate, SchoolYearRead, SchoolYearUpdate
 
 router = APIRouter(prefix="/api/school-years", tags=["school-years"])
@@ -104,5 +106,23 @@ def delete_school_year(school_year_id: uuid.UUID, db: Session = Depends(get_db))
     school_year = db.get(SchoolYear, school_year_id)
     if not school_year:
         raise HTTPException(404, "School year not found")
+
+    remaining = (
+        db.query(SchoolYear).filter(SchoolYear.student_id == school_year.student_id).count()
+    )
+    if remaining <= 1:
+        raise HTTPException(422, "A student must have at least one school year — add another first.")
+
+    # Cascading the delete removes the SchoolDay/InstructionRecord rows themselves,
+    # but attachments are a polymorphic association with no FK to cascade from, so
+    # their files would otherwise be orphaned on disk.
+    instruction_record_ids = db.scalars(
+        select(InstructionRecord.id)
+        .join(SchoolDay, InstructionRecord.school_day_id == SchoolDay.id)
+        .where(SchoolDay.school_year_id == school_year_id)
+    ).all()
+    for record_id in instruction_record_ids:
+        delete_attachments_for(AttachmentAssociationType.instruction_record, record_id, db)
+
     db.delete(school_year)
     db.commit()

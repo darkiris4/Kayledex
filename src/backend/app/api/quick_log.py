@@ -4,11 +4,11 @@ from datetime import timedelta
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
-from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.api.school_day import get_or_create_school_day
 from app.core.db import get_db
-from app.models import InstructionRecord, SchoolDay, SchoolDayStatus, SchoolYear
+from app.models import InstructionRecord
 from app.schemas.instruction_record import InstructionRecordRead
 
 router = APIRouter(prefix="/api/quick-log", tags=["quick-log"])
@@ -26,30 +26,13 @@ def _log_one(
     notes: str | None,
     db: Session,
 ) -> InstructionRecord | None:
-    """Shared by the single and bulk endpoints: find the school year covering this
-    date, get-or-create that day (defaulting to instructional), attach the activity.
-    Returns None (rather than raising) when no school year covers the date, so a bulk
-    catch-up run over a wide range can skip those dates instead of aborting entirely.
+    """Shared by the single and bulk endpoints. Returns None (rather than raising)
+    when no school year covers the date, so a bulk catch-up run over a wide range can
+    skip those dates instead of aborting entirely.
     """
-    school_year = db.scalar(
-        select(SchoolYear).where(
-            SchoolYear.student_id == student_id,
-            SchoolYear.start_date <= date,
-            SchoolYear.end_date >= date,
-        )
-    )
-    if not school_year:
-        return None
-
-    school_day = db.scalar(
-        select(SchoolDay).where(SchoolDay.school_year_id == school_year.id, SchoolDay.date == date)
-    )
+    school_day = get_or_create_school_day(student_id, date, db)
     if not school_day:
-        school_day = SchoolDay(
-            school_year_id=school_year.id, date=date, status=SchoolDayStatus.instructional
-        )
-        db.add(school_day)
-        db.flush()
+        return None
 
     record = InstructionRecord(
         school_day_id=school_day.id,

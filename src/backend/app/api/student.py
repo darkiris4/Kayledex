@@ -3,11 +3,20 @@ from pathlib import Path
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from fastapi.responses import FileResponse
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.api.attachment import delete_attachments_for
 from app.core.config import settings as app_config
 from app.core.db import get_db
-from app.models import Student
+from app.models import (
+    Assessment,
+    AttachmentAssociationType,
+    InstructionRecord,
+    SchoolDay,
+    SchoolYear,
+    Student,
+)
 from app.schemas.student import StudentCreate, StudentRead, StudentUpdate
 
 router = APIRouter(prefix="/api/students", tags=["students"])
@@ -60,9 +69,31 @@ def update_student(student_id: uuid.UUID, payload: StudentUpdate, db: Session = 
 
 @router.delete("/{student_id}", status_code=204)
 def delete_student(student_id: uuid.UUID, db: Session = Depends(get_db)):
+    """Deleting a Student cascades to SchoolYears (and from there Courses/Curricula/
+    Lessons and SchoolDays/InstructionRecords) via ORM relationship config — but
+    Assessment has no such relationship from Student, and Attachment is a polymorphic
+    association with no FK to cascade from at all. Both are cleaned up explicitly here
+    so this doesn't fail with a dangling-reference error or leave orphaned files.
+    """
     student = db.get(Student, student_id)
     if not student:
         raise HTTPException(404, "Student not found")
+
+    for assessment_id in db.scalars(
+        select(Assessment.id).where(Assessment.student_id == student_id)
+    ).all():
+        delete_attachments_for(AttachmentAssociationType.assessment, assessment_id, db)
+    db.query(Assessment).filter(Assessment.student_id == student_id).delete()
+
+    for record_id in db.scalars(
+        select(InstructionRecord.id)
+        .join(SchoolDay, InstructionRecord.school_day_id == SchoolDay.id)
+        .join(SchoolYear, SchoolDay.school_year_id == SchoolYear.id)
+        .where(SchoolYear.student_id == student_id)
+    ).all():
+        delete_attachments_for(AttachmentAssociationType.instruction_record, record_id, db)
+
+    _delete_stored_photo(student)
     db.delete(student)
     db.commit()
 

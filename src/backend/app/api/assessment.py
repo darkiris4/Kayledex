@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.api.attachment import delete_attachments_for
+from app.api.school_day import get_or_create_school_day
 from app.core.db import get_db
 from app.core.grading import compute_grade
 from app.models import Assessment, AttachmentAssociationType
@@ -53,6 +54,10 @@ def list_assessments(
 
 @router.post("", response_model=AssessmentRead, status_code=201)
 def create_assessment(payload: AssessmentCreate, db: Session = Depends(get_db)):
+    # A completed assessment is evidence the day happened, so it counts as a school
+    # day on its own — same as logging any other activity. Silently skipped if the
+    # date falls outside any school year, matching quick-log's own behavior.
+    get_or_create_school_day(payload.student_id, payload.date, db)
     assessment = Assessment(**payload.model_dump())
     db.add(assessment)
     db.commit()
