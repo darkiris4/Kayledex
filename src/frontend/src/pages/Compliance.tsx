@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react"
 import { useStudents } from "@/context/StudentContext"
 import {
   api,
+  type ComplianceProfileDetail,
   type ComplianceProfileSummary,
   type ComplianceReport,
   type SchoolYear,
@@ -20,6 +21,7 @@ export function Compliance() {
   const [profiles, setProfiles] = useState<ComplianceProfileSummary[]>([])
   const [selectedProfileId, setSelectedProfileId] = useState("")
   const [report, setReport] = useState<ComplianceReport | null>(null)
+  const [profileDetail, setProfileDetail] = useState<ComplianceProfileDetail | null>(null)
 
   useEffect(() => {
     if (!activeStudent) return
@@ -39,6 +41,14 @@ export function Compliance() {
   useEffect(() => {
     reloadReport()
   }, [reloadReport])
+
+  useEffect(() => {
+    if (!schoolYear?.compliance_profile_id) {
+      setProfileDetail(null)
+      return
+    }
+    api.compliance.getProfile(schoolYear.compliance_profile_id).then(setProfileDetail)
+  }, [schoolYear?.compliance_profile_id])
 
   async function handleSetProfile() {
     if (!schoolYear || !selectedProfileId) return
@@ -91,6 +101,12 @@ export function Compliance() {
           Requirements version {report.profile?.version} · last verified {report.profile?.last_verified}
         </p>
       </div>
+
+      {profileDetail?.notes && (
+        <Card className="border-primary/30 bg-primary/5">
+          <CardContent className="pt-4 text-sm">{profileDetail.notes}</CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardContent className="pt-6">

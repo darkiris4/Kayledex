@@ -14,6 +14,7 @@ export interface Student {
   student_identifier: string | null
   start_date: string | null
   active: boolean
+  photo_path: string | null
 }
 
 export interface SchoolYear {
@@ -192,6 +193,7 @@ export interface Settings {
   report_branding_enabled: boolean
   report_footer_text: string | null
   parent_educator_name: string | null
+  calendar_status_colors: Record<string, string> | null
 }
 
 export interface ComplianceProfileSummary {
@@ -281,6 +283,19 @@ export const api = {
       request<Student>("/students", { method: "POST", body: JSON.stringify(data) }),
     update: (id: string, data: Partial<Student>) =>
       request<Student>(`/students/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
+    uploadPhoto: async (studentId: string, file: File): Promise<Student> => {
+      const formData = new FormData()
+      formData.append("file", file)
+      const res = await fetch(`/api/students/${studentId}/photo`, { method: "POST", body: formData })
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({ detail: res.statusText }))
+        throw new ApiError(res.status, body.detail ?? res.statusText)
+      }
+      return res.json() as Promise<Student>
+    },
+    deletePhoto: (studentId: string) =>
+      request<Student>(`/students/${studentId}/photo`, { method: "DELETE" }),
+    photoUrl: (studentId: string) => `/api/students/${studentId}/photo`,
   },
   schoolYears: {
     list: (studentId?: string) =>
@@ -441,6 +456,9 @@ export const api = {
     },
     deleteReportLogo: (familyId: string) =>
       request<Settings>(`/settings/report-logo?family_id=${familyId}`, { method: "DELETE" }),
+  },
+  admin: {
+    factoryReset: () => request<void>("/admin/factory-reset", { method: "POST" }),
   },
 }
 

@@ -12,7 +12,7 @@ export const SCHOOL_DAY_STATUSES: SchoolDayStatus[] = [
 ]
 
 export const STATUS_LABELS: Record<SchoolDayStatus, string> = {
-  instructional: "Instructional",
+  instructional: "School Day",
   partial: "Partial",
   non_instructional: "Day Off",
   holiday: "Holiday",
@@ -22,24 +22,31 @@ export const STATUS_LABELS: Record<SchoolDayStatus, string> = {
   other: "Other",
 }
 
-export const STATUS_DOT_COLORS: Record<SchoolDayStatus, string> = {
-  instructional: "bg-emerald-500",
-  partial: "bg-amber-500",
-  non_instructional: "bg-gray-400",
-  holiday: "bg-blue-500",
-  vacation: "bg-purple-500",
-  sick: "bg-red-500",
-  field_trip: "bg-orange-500",
-  other: "bg-gray-400",
+// Hex so these can back <input type="color"> in Settings and be overridden per family
+// (Settings.calendar_status_colors) rather than being fixed Tailwind classes.
+export const DEFAULT_STATUS_COLORS: Record<SchoolDayStatus, string> = {
+  instructional: "#10b981",
+  partial: "#f59e0b",
+  non_instructional: "#9ca3af",
+  holiday: "#3b82f6",
+  vacation: "#a855f7",
+  sick: "#ef4444",
+  field_trip: "#f97316",
+  other: "#9ca3af",
 }
 
-export const STATUS_BG_COLORS: Record<SchoolDayStatus, string> = {
-  instructional: "bg-emerald-500/15 dark:bg-emerald-500/20",
-  partial: "bg-amber-500/15 dark:bg-amber-500/20",
-  non_instructional: "bg-gray-400/15 dark:bg-gray-400/20",
-  holiday: "bg-blue-500/15 dark:bg-blue-500/20",
-  vacation: "bg-purple-500/15 dark:bg-purple-500/20",
-  sick: "bg-red-500/15 dark:bg-red-500/20",
-  field_trip: "bg-orange-500/15 dark:bg-orange-500/20",
-  other: "bg-gray-400/15 dark:bg-gray-400/20",
+export function getStatusColor(
+  status: SchoolDayStatus,
+  overrides: Record<string, string> | null | undefined,
+): string {
+  return overrides?.[status] || DEFAULT_STATUS_COLORS[status]
+}
+
+export function hexToRgba(hex: string, alpha: number): string {
+  const clean = hex.replace("#", "")
+  const r = parseInt(clean.slice(0, 2), 16)
+  const g = parseInt(clean.slice(2, 4), 16)
+  const b = parseInt(clean.slice(4, 6), 16)
+  if ([r, g, b].some(Number.isNaN)) return `rgba(156, 163, 175, ${alpha})`
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`
 }

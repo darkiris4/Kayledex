@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
+import { DurationInput } from "@/components/DurationInput"
 import {
   Dialog,
   DialogContent,
@@ -102,14 +103,8 @@ export function LogActivityDialog({ date, open, onOpenChange, onLogged }: LogAct
           </div>
 
           <div className="flex flex-col gap-2">
-            <Label htmlFor="duration">Duration (minutes)</Label>
-            <Input
-              id="duration"
-              type="number"
-              min="0"
-              value={durationMinutes}
-              onChange={(e) => setDurationMinutes(e.target.value)}
-            />
+            <Label>Duration</Label>
+            <DurationInput valueMinutes={durationMinutes} onChange={setDurationMinutes} idPrefix="duration" />
           </div>
 
           <div className="flex items-center gap-2">

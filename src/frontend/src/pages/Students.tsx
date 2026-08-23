@@ -34,14 +34,90 @@ function StudentSchoolYears({ student }: { student: Student }) {
               <span>
                 {y.name} ({y.start_date} &ndash; {y.end_date})
               </span>
-              {y.active && (
-                <Badge variant="secondary" className="text-xs">
-                  Active
-                </Badge>
-              )}
+              <span className="flex items-center gap-2">
+                {y.active && (
+                  <Badge variant="secondary" className="text-xs">
+                    Active
+                  </Badge>
+                )}
+                <AddSchoolYearDialog
+                  studentId={student.id}
+                  schoolYear={y}
+                  onAdded={reload}
+                  trigger={
+                    <Button size="sm" variant="ghost" className="h-6 px-2 text-xs">
+                      Edit
+                    </Button>
+                  }
+                />
+              </span>
             </li>
           ))}
         </ul>
+      )}
+    </div>
+  )
+}
+
+function StudentPhoto({ student, onChanged }: { student: Student; onChanged: () => void }) {
+  const [uploading, setUploading] = useState(false)
+  const inputId = `student-photo-${student.id}`
+
+  async function handleUpload(file: File) {
+    setUploading(true)
+    try {
+      await api.students.uploadPhoto(student.id, file)
+      onChanged()
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  async function handleRemove() {
+    await api.students.deletePhoto(student.id)
+    onChanged()
+  }
+
+  return (
+    <div className="relative shrink-0">
+      <label
+        htmlFor={inputId}
+        className="block h-14 w-14 cursor-pointer overflow-hidden rounded-full border bg-muted"
+        title="Change photo"
+      >
+        {student.photo_path ? (
+          <img
+            src={`${api.students.photoUrl(student.id)}?v=${student.photo_path}`}
+            alt={student.name}
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center text-lg font-medium text-muted-foreground">
+            {student.name.charAt(0).toUpperCase()}
+          </div>
+        )}
+      </label>
+      <input
+        id={inputId}
+        type="file"
+        accept="image/png,image/jpeg,image/gif,image/webp"
+        className="hidden"
+        disabled={uploading}
+        onChange={(e) => {
+          const file = e.target.files?.[0]
+          if (file) handleUpload(file)
+          e.target.value = ""
+        }}
+      />
+      {student.photo_path && (
+        <button
+          type="button"
+          onClick={handleRemove}
+          aria-label="Remove photo"
+          className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full border bg-background text-xs text-muted-foreground shadow hover:text-destructive"
+        >
+          ×
+        </button>
       )}
     </div>
   )
@@ -56,16 +132,19 @@ function StudentCard({ family_id, student, onChanged }: { family_id: string; stu
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <div>
-          <CardTitle className="flex items-center gap-2">
-            {student.name}
-            {!student.active && (
-              <Badge variant="secondary" className="text-xs">
-                Inactive
-              </Badge>
-            )}
-          </CardTitle>
-          {student.grade_level && <p className="text-sm text-muted-foreground">{student.grade_level}</p>}
+        <div className="flex items-center gap-3">
+          <StudentPhoto student={student} onChanged={onChanged} />
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              {student.name}
+              {!student.active && (
+                <Badge variant="secondary" className="text-xs">
+                  Inactive
+                </Badge>
+              )}
+            </CardTitle>
+            {student.grade_level && <p className="text-sm text-muted-foreground">{student.grade_level}</p>}
+          </div>
         </div>
         <div className="flex gap-2">
           <AddStudentDialog

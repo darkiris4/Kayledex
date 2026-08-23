@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
+import { DurationInput } from "@/components/DurationInput"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import {
   Dialog,
   DialogContent,
@@ -92,11 +94,22 @@ export function CatchUpDialog({ onLogged }: CatchUpDialogProps) {
         }
       }}
     >
-      <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          Catch Up
-        </Button>
-      </DialogTrigger>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <DialogTrigger asChild>
+            <Button variant="outline" size="sm">
+              Catch Up
+            </Button>
+          </DialogTrigger>
+        </TooltipTrigger>
+        <TooltipContent className="max-w-xs">
+          <p>
+            Log the same subject and activity across a whole range of past dates at
+            once — for backfilling everything done before you started using this app,
+            instead of logging one day at a time.
+          </p>
+        </TooltipContent>
+      </Tooltip>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Catch Up on Past Activity</DialogTitle>
@@ -148,12 +161,8 @@ export function CatchUpDialog({ onLogged }: CatchUpDialogProps) {
             </div>
 
             <div className="flex flex-col gap-2">
-              <Label>Duration (minutes, optional)</Label>
-              <Input
-                type="number"
-                value={durationMinutes}
-                onChange={(e) => setDurationMinutes(e.target.value)}
-              />
+              <Label>Duration (optional)</Label>
+              <DurationInput valueMinutes={durationMinutes} onChange={setDurationMinutes} idPrefix="catchup-duration" />
             </div>
 
             <div className="grid grid-cols-2 gap-4">

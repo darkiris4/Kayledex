@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
+import { DurationInput } from "@/components/DurationInput"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 type Step = "welcome" | "setup" | "compliance" | "student" | "subjects" | "catchup" | "done"
@@ -478,11 +479,11 @@ export function Onboarding({ onComplete }: OnboardingProps) {
                 </div>
 
                 <div className="flex flex-col gap-2">
-                  <Label>Duration (minutes, optional)</Label>
-                  <Input
-                    type="number"
-                    value={catchUpDuration}
-                    onChange={(e) => setCatchUpDuration(e.target.value)}
+                  <Label>Duration (optional)</Label>
+                  <DurationInput
+                    valueMinutes={catchUpDuration}
+                    onChange={setCatchUpDuration}
+                    idPrefix="onboarding-catchup-duration"
                   />
                 </div>
 

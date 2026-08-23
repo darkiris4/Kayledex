@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { api, type InstructionRecord, type SchoolDay, type SchoolDayStatus } from "@/lib/api"
 import { STATUS_LABELS, SCHOOL_DAY_STATUSES } from "@/lib/schoolDayStatus"
+import { formatMinutes } from "@/lib/format"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -99,7 +100,7 @@ export function DayDetailDialog({
                       <div className="flex items-center justify-between">
                         <span>
                           {record.completed ? "✓" : "○"} {record.activity_description ?? "Activity"}
-                          {record.duration_minutes != null ? ` (${record.duration_minutes}m)` : ""}
+                          {record.duration_minutes != null ? ` (${formatMinutes(record.duration_minutes)})` : ""}
                         </span>
                         <Button
                           variant="ghost"

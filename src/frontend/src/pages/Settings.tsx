@@ -17,8 +17,17 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 import { AddGradeScaleDialog } from "@/components/AddGradeScaleDialog"
 import { HelpTooltip } from "@/components/HelpTooltip"
+import { SCHOOL_DAY_STATUSES, STATUS_LABELS, DEFAULT_STATUS_COLORS } from "@/lib/schoolDayStatus"
 
 function FieldLabel({ children, help }: { children: React.ReactNode; help: string }) {
   return (
@@ -86,6 +95,12 @@ export function Settings() {
   })
   const [savingBranding, setSavingBranding] = useState(false)
 
+  const [colorForm, setColorForm] = useState<Record<string, string>>(DEFAULT_STATUS_COLORS)
+  const [savingColors, setSavingColors] = useState(false)
+
+  const [resetDialogOpen, setResetDialogOpen] = useState(false)
+  const [resetting, setResetting] = useState(false)
+
   const load = useCallback(async () => {
     if (!activeStudent) return
     const families = await api.families.list()
@@ -105,6 +120,7 @@ export function Settings() {
       parent_educator_name: s.parent_educator_name ?? "",
       report_footer_text: s.report_footer_text ?? "",
     })
+    setColorForm({ ...DEFAULT_STATUS_COLORS, ...(s.calendar_status_colors ?? {}) })
 
     const years = await api.schoolYears.list(activeStudent.id)
     const today = toDateString(new Date())
@@ -202,6 +218,31 @@ export function Settings() {
     if (!activeStudent) return
     await api.settings.deleteReportLogo(activeStudent.family_id)
     load()
+  }
+
+  async function saveColors() {
+    if (!activeStudent) return
+    setSavingColors(true)
+    try {
+      await api.settings.update(activeStudent.family_id, { calendar_status_colors: colorForm })
+      load()
+    } finally {
+      setSavingColors(false)
+    }
+  }
+
+  async function handleFactoryReset() {
+    const finalWarning = window.confirm(
+      "Final check: this permanently deletes every family, student, and record in this installation. There is no undo. Continue?",
+    )
+    if (!finalWarning) return
+    setResetting(true)
+    try {
+      await api.admin.factoryReset()
+      window.location.href = "/"
+    } catch {
+      setResetting(false)
+    }
   }
 
   if (studentsLoading) return null
@@ -595,6 +636,95 @@ export function Settings() {
             just this family, run <code>scripts/backup.sh</code> on the server. See the README
             for restore steps.
           </p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Calendar Colors</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-3">
+          <p className="text-sm text-muted-foreground">
+            Customize the color shown on the Calendar for each day status.
+          </p>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {SCHOOL_DAY_STATUSES.map((status) => (
+              <div key={status} className="flex items-center gap-2">
+                <input
+                  type="color"
+                  aria-label={`${STATUS_LABELS[status]} color`}
+                  value={colorForm[status] ?? DEFAULT_STATUS_COLORS[status]}
+                  onChange={(e) =>
+                    setColorForm((f) => ({ ...f, [status]: e.target.value }))
+                  }
+                  className="h-8 w-8 cursor-pointer rounded border"
+                />
+                <span className="text-sm">{STATUS_LABELS[status]}</span>
+              </div>
+            ))}
+          </div>
+          <div className="flex gap-2">
+            <Button size="sm" onClick={saveColors} disabled={savingColors}>
+              {savingColors ? "Saving…" : "Save"}
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setColorForm(DEFAULT_STATUS_COLORS)}
+            >
+              Reset to Defaults
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="border-destructive/50">
+        <CardHeader>
+          <CardTitle className="text-base text-destructive">Danger Zone</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-3">
+          <div className="flex flex-col gap-1">
+            <FieldLabel help="Permanently deletes every family, student, school year, subject, and logged record in this installation. There is no undo — this is meant for wiping test data or truly starting over.">
+              Delete Everything
+            </FieldLabel>
+            <p className="text-sm text-muted-foreground">
+              Erases all data in this installation and returns it to a fresh-install
+              state. This cannot be undone.
+            </p>
+          </div>
+          <Dialog open={resetDialogOpen} onOpenChange={setResetDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="destructive" size="sm" className="self-start">
+                Delete Everything
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Are you sure?</DialogTitle>
+              </DialogHeader>
+              <p className="text-sm text-muted-foreground">
+                This will permanently delete every family, student, school year,
+                subject, activity, assessment, and setting stored in this
+                installation — <strong>there is no undo</strong>. You'll be asked to
+                confirm one more time before it actually runs.
+              </p>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setResetDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button
+                  variant="destructive"
+                  disabled={resetting}
+                  onClick={() => {
+                    setResetDialogOpen(false)
+                    handleFactoryReset()
+                  }}
+                >
+                  {resetting ? "Deleting…" : "Yes, I understand — Continue"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </CardContent>
       </Card>
     </div>
