@@ -52,7 +52,7 @@ export function Academics() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-xl font-semibold">Courses</h2>
         <AddCourseDialog schoolYearId={schoolYear.id} subjects={subjects} onAdded={reloadCourses} />
       </div>
@@ -67,7 +67,7 @@ export function Academics() {
         </div>
       )}
 
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-xl font-semibold">Assessments</h2>
         <AddAssessmentDialog
           studentId={activeStudent.id}
@@ -89,7 +89,7 @@ export function Academics() {
                 const subjectName = subjects.find((s) => s.id === a.subject_id)?.name
                 return (
                   <li key={a.id} className="flex flex-col gap-1 text-sm">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
                       <span>
                         {a.date} — {subjectName ? `${subjectName}: ` : ""}
                         {a.name}

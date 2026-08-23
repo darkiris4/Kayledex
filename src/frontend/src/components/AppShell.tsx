@@ -1,5 +1,6 @@
-import type { ReactNode } from "react"
+import { useState, type ReactNode } from "react"
 import { NavLink } from "react-router-dom"
+import { Menu, X } from "lucide-react"
 import { StudentSwitcher } from "@/components/StudentSwitcher"
 import { ThemeToggle } from "@/components/ThemeToggle"
 
@@ -14,16 +15,26 @@ const NAV_ITEMS = [
 ]
 
 export function AppShell({ children }: { children: ReactNode }) {
+  const [menuOpen, setMenuOpen] = useState(false)
+
   return (
     <div className="min-h-screen">
-      <header className="border-b">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-6">
-            <div className="flex items-center gap-2">
-              <img src="/logo.png" alt="" className="h-9 w-9" />
-              <h1 className="text-lg font-bold text-primary">KAYLEDEX</h1>
+      <header className="relative border-b">
+        <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-2 px-4 py-3">
+          <div className="flex min-w-0 items-center gap-6">
+            <button
+              type="button"
+              aria-label={menuOpen ? "Close menu" : "Open menu"}
+              onClick={() => setMenuOpen((open) => !open)}
+              className="shrink-0 text-foreground md:hidden"
+            >
+              {menuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
+            <div className="flex min-w-0 items-center gap-2">
+              <img src="/logo.png" alt="" className="h-9 w-9 shrink-0" />
+              <h1 className="truncate text-lg font-bold text-primary">KAYLEDEX</h1>
             </div>
-            <nav className="flex gap-4">
+            <nav className="hidden gap-4 md:flex">
               {NAV_ITEMS.map((item) => (
                 <NavLink
                   key={item.to}
@@ -40,11 +51,33 @@ export function AppShell({ children }: { children: ReactNode }) {
               ))}
             </nav>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex shrink-0 items-center gap-2">
             <StudentSwitcher />
             <ThemeToggle />
           </div>
         </div>
+
+        {menuOpen && (
+          <nav className="absolute left-0 top-full z-40 flex w-56 flex-col gap-1 border-b border-r bg-background p-2 shadow-lg md:hidden">
+            {NAV_ITEMS.map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                end={item.end}
+                onClick={() => setMenuOpen(false)}
+                className={({ isActive }) =>
+                  `rounded-md px-3 py-2 text-sm font-medium ${
+                    isActive
+                      ? "bg-muted text-foreground"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  }`
+                }
+              >
+                {item.label}
+              </NavLink>
+            ))}
+          </nav>
+        )}
       </header>
       <main className="mx-auto max-w-5xl px-4 py-6">{children}</main>
     </div>

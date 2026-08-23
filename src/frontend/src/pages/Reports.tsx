@@ -37,9 +37,9 @@ export function Reports() {
       <div className="flex flex-col gap-3">
         {REPORTS.map((report) => (
           <Card key={report.slug}>
-            <CardHeader className="flex flex-row items-center justify-between">
+            <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
               <CardTitle className="text-base">{report.label}</CardTitle>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Button asChild size="sm" variant="outline">
                   <a href={`/api/reports/${report.slug}?school_year_id=${schoolYear.id}&format=pdf`}>
                     Download PDF

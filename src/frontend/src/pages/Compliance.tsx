@@ -70,9 +70,9 @@ export function Compliance() {
         <CardHeader>
           <CardTitle>Choose Your State's Requirements</CardTitle>
         </CardHeader>
-        <CardContent className="flex items-center gap-2">
+        <CardContent className="flex flex-wrap items-center gap-2">
           <Select value={selectedProfileId} onValueChange={setSelectedProfileId}>
-            <SelectTrigger className="w-[240px]">
+            <SelectTrigger className="w-full sm:w-[240px]">
               <SelectValue placeholder="Select your state" />
             </SelectTrigger>
             <SelectContent>
@@ -112,7 +112,7 @@ export function Compliance() {
         <CardContent className="pt-6">
           <ul className="flex flex-col gap-3">
             {report.results.map((result) => (
-              <li key={result.requirement_id} className="flex items-center justify-between gap-4">
+              <li key={result.requirement_id} className="flex flex-wrap items-center justify-between gap-2">
                 <span className="flex items-center gap-2">
                   <span className={result.satisfied ? "text-emerald-600" : "text-muted-foreground"}>
                     {result.satisfied ? "✓" : "○"}

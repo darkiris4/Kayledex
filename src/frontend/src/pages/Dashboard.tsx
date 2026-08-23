@@ -74,7 +74,7 @@ export function Dashboard() {
       </div>
 
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
           <CardTitle>Today</CardTitle>
           <Button size="sm" onClick={() => setLogDialogOpen(true)}>
             + Add Subject
@@ -86,7 +86,7 @@ export function Dashboard() {
           ) : (
             <ul className="flex flex-col gap-2">
               {summary.today.records.map((record) => (
-                <li key={record.id} className="flex items-center justify-between">
+                <li key={record.id} className="flex flex-wrap items-center justify-between gap-2">
                   <span>
                     {record.completed ? "✓" : "○"} {record.subject_name}
                     {record.activity_description ? ` — ${record.activity_description}` : ""}

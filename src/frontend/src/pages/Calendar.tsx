@@ -77,14 +77,14 @@ export function Calendar() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-3">
           <h2 className="text-xl font-semibold">
             {month.toLocaleDateString(undefined, { month: "long", year: "numeric" })}
           </h2>
           {students.length > 1 && (
             <Select value={activeStudent.id} onValueChange={setActiveStudentId}>
-              <SelectTrigger aria-label="Filter by student" className="w-[180px]">
+              <SelectTrigger aria-label="Filter by student" className="w-[110px] sm:w-[180px]">
                 <SelectValue placeholder="Select student" />
               </SelectTrigger>
               <SelectContent>
@@ -97,7 +97,7 @@ export function Calendar() {
             </Select>
           )}
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <CatchUpDialog onLogged={reloadSchoolDays} />
           <Button variant="outline" size="sm" onClick={() => setMonth((m) => addMonths(m, -1))}>
             ← Prev

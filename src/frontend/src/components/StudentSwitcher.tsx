@@ -15,7 +15,7 @@ export function StudentSwitcher() {
 
   return (
     <Select value={activeStudent?.id} onValueChange={setActiveStudentId}>
-      <SelectTrigger aria-label="Active student" className="w-[180px]">
+      <SelectTrigger aria-label="Active student" className="w-[110px] sm:w-[180px]">
         <SelectValue placeholder="Select student" />
       </SelectTrigger>
       <SelectContent>
