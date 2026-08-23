@@ -21,7 +21,7 @@ function StudentSchoolYears({ student }: { student: Student }) {
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <span className="text-sm font-medium text-muted-foreground">School Years</span>
         <AddSchoolYearDialog studentId={student.id} onAdded={reload} />
       </div>
@@ -101,6 +101,7 @@ function StudentPhoto({ student, onChanged }: { student: Student; onChanged: () 
         id={inputId}
         type="file"
         accept="image/png,image/jpeg,image/gif,image/webp"
+        capture="environment"
         className="hidden"
         disabled={uploading}
         onChange={(e) => {
@@ -131,7 +132,7 @@ function StudentCard({ family_id, student, onChanged }: { family_id: string; stu
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
+      <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-3">
           <StudentPhoto student={student} onChanged={onChanged} />
           <div>
@@ -274,7 +275,7 @@ export function Students() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-xl font-semibold">Students</h2>
         <AddStudentDialog familyId={activeStudent.family_id} onSaved={handleChanged} />
       </div>

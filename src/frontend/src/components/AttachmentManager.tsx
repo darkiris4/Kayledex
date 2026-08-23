@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { api, type Attachment, type AttachmentAssociationType } from "@/lib/api"
 import { Button } from "@/components/ui/button"
+import { DocumentScannerDialog } from "@/components/DocumentScannerDialog"
 
 interface AttachmentManagerProps {
   associatedType: AttachmentAssociationType
@@ -10,6 +11,7 @@ interface AttachmentManagerProps {
 export function AttachmentManager({ associatedType, associatedId }: AttachmentManagerProps) {
   const [attachments, setAttachments] = useState<Attachment[]>([])
   const [uploading, setUploading] = useState(false)
+  const [scannerOpen, setScannerOpen] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const reload = useCallback(() => {
@@ -20,9 +22,7 @@ export function AttachmentManager({ associatedType, associatedId }: AttachmentMa
     reload()
   }, [reload])
 
-  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
+  async function uploadFile(file: File) {
     setUploading(true)
     try {
       await api.attachments.upload(associatedType, associatedId, file)
@@ -31,8 +31,14 @@ export function AttachmentManager({ associatedType, associatedId }: AttachmentMa
       window.alert(err instanceof Error ? err.message : "Upload failed")
     } finally {
       setUploading(false)
-      if (fileInputRef.current) fileInputRef.current.value = ""
     }
+  }
+
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    await uploadFile(file)
+    if (fileInputRef.current) fileInputRef.current.value = ""
   }
 
   async function handleDelete(id: string) {
@@ -80,6 +86,23 @@ export function AttachmentManager({ associatedType, associatedId }: AttachmentMa
       >
         {uploading ? "Uploading…" : "+ Attach"}
       </Button>
+      {typeof navigator !== "undefined" && navigator.mediaDevices && (
+        <Button
+          type="button"
+          size="sm"
+          variant="ghost"
+          className="h-6 px-2 text-xs"
+          disabled={uploading}
+          onClick={() => setScannerOpen(true)}
+        >
+          Scan
+        </Button>
+      )}
+      <DocumentScannerDialog
+        open={scannerOpen}
+        onOpenChange={setScannerOpen}
+        onScanned={uploadFile}
+      />
     </div>
   )
 }

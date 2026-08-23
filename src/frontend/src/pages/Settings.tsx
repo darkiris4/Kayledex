@@ -458,7 +458,7 @@ export function Settings() {
       </Card>
 
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
           <CardTitle className="text-base">Grading</CardTitle>
           <AddGradeScaleDialog familyId={activeStudent.family_id} onAdded={load} />
         </CardHeader>
@@ -466,7 +466,7 @@ export function Settings() {
           {gradeScales.length === 0 ? (
             <p className="text-sm text-muted-foreground">No grade scales yet.</p>
           ) : (
-            <div className="flex items-start gap-6">
+            <div className="flex flex-wrap items-start gap-6">
               <div className="flex flex-col gap-2">
                 <FieldLabel help="Which letter-grade scale is used to grade assessments and report cards. Change it any time — every past assessment's displayed grade updates immediately, since grades are computed on the fly rather than stored.">
                   Active Grade Scale
@@ -540,7 +540,7 @@ export function Settings() {
             <FieldLabel help="Replaces the default Kayledex mark on reports with your own family or co-op logo. Remove it to go back to the Kayledex default.">
               Report Logo
             </FieldLabel>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               {settings.report_branding_logo_path ? (
                 <>
                   <span className="text-sm text-muted-foreground">Custom logo uploaded</span>
@@ -554,6 +554,7 @@ export function Settings() {
                   <Input
                     type="file"
                     accept="image/png,image/jpeg,image/gif,image/webp"
+                    capture="environment"
                     className="max-w-64"
                     onChange={(e) => {
                       const file = e.target.files?.[0]
