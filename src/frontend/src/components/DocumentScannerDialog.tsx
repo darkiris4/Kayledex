@@ -17,6 +17,51 @@ interface DocumentScannerDialogProps {
 
 type Status = "loading" | "live" | "preview" | "error"
 
+interface Point {
+  x: number
+  y: number
+}
+
+interface Corners {
+  topLeftCorner: Point
+  topRightCorner: Point
+  bottomLeftCorner: Point
+  bottomRightCorner: Point
+}
+
+// Raw frame-to-frame corner detection is noisy (camera shake, lighting, background
+// clutter all shift which contour point reads as "farthest corner"), which is what
+// made the live highlight look like it was jumping around. Blending each corner
+// toward its newly-detected position instead of snapping to it directly smooths that
+// out; lower = calmer but slower to react to an actually-moved document.
+const SMOOTHING = 0.25
+
+function lerpPoint(prev: Point, next: Point, t: number): Point {
+  return { x: prev.x + (next.x - prev.x) * t, y: prev.y + (next.y - prev.y) * t }
+}
+
+function lerpCorners(prev: Corners, next: Corners, t: number): Corners {
+  return {
+    topLeftCorner: lerpPoint(prev.topLeftCorner, next.topLeftCorner, t),
+    topRightCorner: lerpPoint(prev.topRightCorner, next.topRightCorner, t),
+    bottomLeftCorner: lerpPoint(prev.bottomLeftCorner, next.bottomLeftCorner, t),
+    bottomRightCorner: lerpPoint(prev.bottomRightCorner, next.bottomRightCorner, t),
+  }
+}
+
+function drawQuad(ctx: CanvasRenderingContext2D, corners: Corners) {
+  const { topLeftCorner: tl, topRightCorner: tr, bottomRightCorner: br, bottomLeftCorner: bl } = corners
+  ctx.strokeStyle = "orange"
+  ctx.lineWidth = 6
+  ctx.beginPath()
+  ctx.moveTo(tl.x, tl.y)
+  ctx.lineTo(tr.x, tr.y)
+  ctx.lineTo(br.x, br.y)
+  ctx.lineTo(bl.x, bl.y)
+  ctx.lineTo(tl.x, tl.y)
+  ctx.stroke()
+}
+
 export function DocumentScannerDialog({ open, onOpenChange, onScanned }: DocumentScannerDialogProps) {
   const [status, setStatus] = useState<Status>("loading")
   const [error, setError] = useState<string | null>(null)
@@ -30,6 +75,8 @@ export function DocumentScannerDialog({ open, onOpenChange, onScanned }: Documen
   const streamRef = useRef<MediaStream | null>(null)
   const frameRef = useRef<number | null>(null)
   const scannerRef = useRef<any>(null)
+  const smoothedCornersRef = useRef<Corners | null>(null)
+  const lastDetectRef = useRef(0)
 
   useEffect(() => {
     if (!open) return
@@ -107,8 +154,12 @@ export function DocumentScannerDialog({ open, onOpenChange, onScanned }: Documen
   useEffect(() => {
     if (!cameraReady || !scannerReady) return
     let cancelled = false
+    smoothedCornersRef.current = null
+    lastDetectRef.current = 0
 
-    function tick() {
+    const DETECT_INTERVAL_MS = 150
+
+    function tick(now: number) {
       const video = videoRef.current
       const overlay = overlayCanvasRef.current
       if (cancelled || !video || !overlay || !video.videoWidth) {
@@ -120,11 +171,41 @@ export function DocumentScannerDialog({ open, onOpenChange, onScanned }: Documen
       overlay.width = video.videoWidth
       overlay.height = video.videoHeight
       ctx.drawImage(video, 0, 0, overlay.width, overlay.height)
-      try {
-        const highlighted = scannerRef.current.highlightPaper(overlay)
-        ctx.drawImage(highlighted, 0, 0, overlay.width, overlay.height)
-      } catch {
-        // No paper-like contour found in this frame - leave the plain frame showing.
+
+      // Detection (Canny edge + contour search) runs on OpenCV's WASM heap and is
+      // the expensive part - throttling it independently of the render rate keeps
+      // the video feed itself smooth while cutting how often noisy new corner
+      // readings arrive, which is most of what made the highlight feel jumpy.
+      if (now - lastDetectRef.current >= DETECT_INTERVAL_MS) {
+        lastDetectRef.current = now
+        const mat = window.cv.imread(overlay)
+        try {
+          const contour = scannerRef.current.findPaperContour(mat)
+          if (contour) {
+            const corners = scannerRef.current.getCornerPoints(contour) as Partial<Corners>
+            contour.delete()
+            if (
+              corners.topLeftCorner &&
+              corners.topRightCorner &&
+              corners.bottomLeftCorner &&
+              corners.bottomRightCorner
+            ) {
+              const detected = corners as Corners
+              smoothedCornersRef.current = smoothedCornersRef.current
+                ? lerpCorners(smoothedCornersRef.current, detected, SMOOTHING)
+                : detected
+            }
+          }
+        } catch {
+          // No paper-like contour found in this frame - keep showing the last
+          // smoothed position rather than clearing it.
+        } finally {
+          mat.delete()
+        }
+      }
+
+      if (smoothedCornersRef.current) {
+        drawQuad(ctx, smoothedCornersRef.current)
       }
       frameRef.current = requestAnimationFrame(tick)
     }
@@ -146,7 +227,18 @@ export function DocumentScannerDialog({ open, onOpenChange, onScanned }: Documen
     source.height = video.videoHeight
     source.getContext("2d")?.drawImage(video, 0, 0)
 
-    const extracted = scannerRef.current.extractPaper(source, source.width, source.height)
+    // Use the smoothed corners rather than re-detecting fresh on this one frame,
+    // which is exactly as noise-prone as any other single frame was.
+    const extracted = scannerRef.current.extractPaper(
+      source,
+      source.width,
+      source.height,
+      smoothedCornersRef.current ?? undefined,
+    )
+    if (!extracted) {
+      window.alert("No document detected — line up the page fully in frame and try again.")
+      return
+    }
     result.width = extracted.width
     result.height = extracted.height
     result.getContext("2d")?.drawImage(extracted, 0, 0)
