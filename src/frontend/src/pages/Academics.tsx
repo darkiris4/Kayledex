@@ -72,6 +72,7 @@ export function Academics() {
         <AddAssessmentDialog
           studentId={activeStudent.id}
           subjects={subjects}
+          courses={courses}
           onAdded={reloadAssessments}
         />
       </div>

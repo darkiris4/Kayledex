@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react"
-import { api, type AssessmentType, type Subject } from "@/lib/api"
+import { useEffect, useMemo, useState } from "react"
+import { api, type AssessmentType, type Course, type Subject } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -19,6 +19,7 @@ const ASSESSMENT_TYPES: AssessmentType[] = ["assignment", "quiz", "test", "proje
 interface AddAssessmentDialogProps {
   studentId: string
   subjects: Subject[]
+  courses: Course[]
   onAdded: () => void
   defaultDate?: string
   trigger?: React.ReactNode
@@ -27,12 +28,14 @@ interface AddAssessmentDialogProps {
 export function AddAssessmentDialog({
   studentId,
   subjects,
+  courses,
   onAdded,
   defaultDate,
   trigger,
 }: AddAssessmentDialogProps) {
   const [open, setOpen] = useState(false)
   const [subjectId, setSubjectId] = useState("")
+  const [courseId, setCourseId] = useState("")
   const [name, setName] = useState("")
   const [date, setDate] = useState(() => defaultDate ?? toDateString(new Date()))
   const [type, setType] = useState<AssessmentType>("test")
@@ -44,6 +47,17 @@ export function AddAssessmentDialog({
     if (open) setDate(defaultDate ?? toDateString(new Date()))
   }, [open, defaultDate])
 
+  // Courses are nested under a subject but graded independently, so the assessment has
+  // to be tied to a specific course (not just its subject) for the report card to find it.
+  const coursesForSubject = useMemo(
+    () => courses.filter((c) => c.subject_id === subjectId),
+    [courses, subjectId],
+  )
+
+  useEffect(() => {
+    setCourseId("")
+  }, [subjectId])
+
   async function handleSave() {
     if (!subjectId || !name) return
     setSaving(true)
@@ -51,6 +65,7 @@ export function AddAssessmentDialog({
       await api.assessments.create({
         student_id: studentId,
         subject_id: subjectId,
+        course_id: courseId || null,
         name,
         date,
         type,
@@ -91,6 +106,38 @@ export function AddAssessmentDialog({
                 ))}
               </SelectContent>
             </Select>
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label>Course</Label>
+            <Select
+              value={courseId}
+              onValueChange={setCourseId}
+              disabled={!subjectId || coursesForSubject.length === 0}
+            >
+              <SelectTrigger>
+                <SelectValue
+                  placeholder={
+                    !subjectId
+                      ? "Select a subject first"
+                      : coursesForSubject.length === 0
+                        ? "No courses yet for this subject"
+                        : "Select a course"
+                  }
+                />
+              </SelectTrigger>
+              <SelectContent>
+                {coursesForSubject.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>
+                    {c.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {subjectId && coursesForSubject.length === 0 && (
+              <p className="text-xs text-muted-foreground">
+                This won't show up on the report card until you add a course for this subject.
+              </p>
+            )}
           </div>
           <div className="flex flex-col gap-2">
             <Label>Name</Label>

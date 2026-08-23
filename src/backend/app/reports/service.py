@@ -203,14 +203,51 @@ def daily_activity_log(school_year: SchoolYear, db: Session, start: date | None,
         query = query.filter(SchoolDay.date <= end)
 
     rows = []
-    for record, school_day, subject in query.order_by(SchoolDay.date).all():
+    for record, school_day, subject in query.all():
         rows.append(
             {
                 "date": school_day.date.isoformat(),
+                "record_type": "Instruction",
                 "subject_name": subject.name,
-                "activity_description": record.activity_description or "",
+                "description": record.activity_description or "",
                 "duration_minutes": record.duration_minutes,
                 "completed": record.completed,
+                "score": None,
             }
         )
+
+    # Assessments have no SchoolDay row to join against (they're keyed by student + date,
+    # per the Calendar's own day-detail logic), so bound them to the school year explicitly.
+    assessment_query = (
+        db.query(Assessment, Subject)
+        .join(Subject, Assessment.subject_id == Subject.id)
+        .filter(
+            Assessment.student_id == school_year.student_id,
+            Assessment.date >= school_year.start_date,
+            Assessment.date <= school_year.end_date,
+        )
+    )
+    if start is not None:
+        assessment_query = assessment_query.filter(Assessment.date >= start)
+    if end is not None:
+        assessment_query = assessment_query.filter(Assessment.date <= end)
+
+    for assessment, subject in assessment_query.all():
+        percentage, letter = compute_grade(assessment, db)
+        score = None
+        if percentage is not None:
+            score = f"{percentage}% ({letter})" if letter else f"{percentage}%"
+        rows.append(
+            {
+                "date": assessment.date.isoformat(),
+                "record_type": "Assessment",
+                "subject_name": subject.name,
+                "description": assessment.name,
+                "duration_minutes": None,
+                "completed": None,
+                "score": score,
+            }
+        )
+
+    rows.sort(key=lambda r: r["date"])
     return rows

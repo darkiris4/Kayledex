@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from "react"
-import { NavLink } from "react-router-dom"
+import { Link, NavLink } from "react-router-dom"
 import { Menu, X } from "lucide-react"
 import { StudentSwitcher } from "@/components/StudentSwitcher"
 import { ThemeToggle } from "@/components/ThemeToggle"
@@ -30,10 +30,10 @@ export function AppShell({ children }: { children: ReactNode }) {
             >
               {menuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
-            <div className="flex min-w-0 items-center gap-2">
+            <Link to="/" className="flex min-w-0 items-center gap-2">
               <img src="/logo.png" alt="" className="h-9 w-9 shrink-0" />
               <h1 className="truncate text-lg font-bold text-primary">KAYLEDEX</h1>
-            </div>
+            </Link>
             <nav className="hidden gap-4 md:flex">
               {NAV_ITEMS.map((item) => (
                 <NavLink

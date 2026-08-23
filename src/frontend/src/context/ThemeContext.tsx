@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 
 type Theme = "light" | "dark"
 export type Accent = "default" | "blue" | "green" | "purple" | "rose"
-export type Background = "none" | "warm" | "cool"
+export type Background = "none" | "warm" | "cool" | "pink" | "sky" | "purple" | "orange"
 
 const THEME_KEY = "homeschool.theme"
 const ACCENT_KEY = "homeschool.accent"
@@ -21,9 +21,11 @@ function getInitialAccent(): Accent {
     : "default"
 }
 
+const BACKGROUND_VALUES: Background[] = ["warm", "cool", "pink", "sky", "purple", "orange"]
+
 function getInitialBackground(): Background {
   const stored = localStorage.getItem(BACKGROUND_KEY)
-  return stored === "warm" || stored === "cool" ? stored : "none"
+  return (BACKGROUND_VALUES as string[]).includes(stored ?? "") ? (stored as Background) : "none"
 }
 
 interface ThemeContextValue {

@@ -106,7 +106,7 @@ function StudentPhoto({ student, onChanged }: { student: Student; onChanged: () 
     <div className="relative shrink-0">
       <label
         htmlFor={inputId}
-        className="block h-14 w-14 cursor-pointer overflow-hidden rounded-full border bg-muted"
+        className="block h-24 w-24 cursor-pointer overflow-hidden rounded-full border bg-muted"
         title="Change photo"
       >
         {student.photo_path ? (
@@ -116,7 +116,7 @@ function StudentPhoto({ student, onChanged }: { student: Student; onChanged: () 
             className="h-full w-full object-cover"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center text-lg font-medium text-muted-foreground">
+          <div className="flex h-full w-full items-center justify-center text-3xl font-medium text-muted-foreground">
             {student.name.charAt(0).toUpperCase()}
           </div>
         )}
@@ -139,7 +139,7 @@ function StudentPhoto({ student, onChanged }: { student: Student; onChanged: () 
           type="button"
           onClick={handleRemove}
           aria-label="Remove photo"
-          className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full border bg-background text-xs text-muted-foreground shadow hover:text-destructive"
+          className="absolute -right-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full border bg-background text-sm text-muted-foreground shadow hover:text-destructive"
         >
           ×
         </button>

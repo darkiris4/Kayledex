@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import {
   api,
   type Assessment,
+  type Course,
   type InstructionRecord,
   type SchoolDay,
   type SchoolDayStatus,
@@ -47,6 +48,7 @@ export function DayDetailDialog({
   const [records, setRecords] = useState<InstructionRecord[]>([])
   const [assessments, setAssessments] = useState<Assessment[]>([])
   const [subjects, setSubjects] = useState<Subject[]>([])
+  const [courses, setCourses] = useState<Course[]>([])
   const [savingStatus, setSavingStatus] = useState(false)
   const [logDialogOpen, setLogDialogOpen] = useState(false)
 
@@ -75,6 +77,11 @@ export function DayDetailDialog({
     if (!open) return
     api.subjects.list(familyId).then(setSubjects)
   }, [open, familyId])
+
+  useEffect(() => {
+    if (!open) return
+    api.courses.list(schoolYearId).then(setCourses)
+  }, [open, schoolYearId])
 
   async function handleStatusChange(status: SchoolDayStatus) {
     setSavingStatus(true)
@@ -166,6 +173,7 @@ export function DayDetailDialog({
                 <AddAssessmentDialog
                   studentId={studentId}
                   subjects={subjects}
+                  courses={courses}
                   defaultDate={date}
                   onAdded={reloadAssessments}
                   trigger={

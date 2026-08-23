@@ -62,6 +62,26 @@ const BACKGROUND_OPTIONS: { value: Background; label: string; swatch: string }[]
     label: "Cool",
     swatch: "bg-gradient-to-br from-sky-100 to-indigo-200 dark:from-sky-950 dark:to-indigo-900",
   },
+  {
+    value: "pink",
+    label: "Pink",
+    swatch: "bg-gradient-to-br from-pink-100 to-rose-200 dark:from-pink-950 dark:to-rose-900",
+  },
+  {
+    value: "sky",
+    label: "Light Blue",
+    swatch: "bg-gradient-to-br from-cyan-100 to-sky-200 dark:from-cyan-950 dark:to-sky-900",
+  },
+  {
+    value: "purple",
+    label: "Purple",
+    swatch: "bg-gradient-to-br from-violet-100 to-purple-200 dark:from-violet-950 dark:to-purple-900",
+  },
+  {
+    value: "orange",
+    label: "Orange",
+    swatch: "bg-gradient-to-br from-orange-200 to-amber-300 dark:from-orange-950 dark:to-amber-900",
+  },
 ]
 
 export function Settings() {
