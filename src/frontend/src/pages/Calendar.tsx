@@ -14,6 +14,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { DayDetailDialog } from "@/components/DayDetailDialog"
 import { CatchUpDialog } from "@/components/CatchUpDialog"
+import { AxolotlBanner } from "@/components/AxolotlBanner"
 
 const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 
@@ -70,6 +71,7 @@ export function Calendar() {
 
   const schoolDayByDate = new Map(schoolDays.map((d) => [d.date, d]))
   const selectedSchoolDay = selectedDate ? schoolDayByDate.get(selectedDate) : undefined
+  const isCurrentMonth = toDateString(monthStart) === toDateString(startOfMonth(new Date()))
 
   if (!activeStudent) return null
 
@@ -172,6 +174,8 @@ export function Calendar() {
           </CardContent>
         </Card>
       )}
+
+      <AxolotlBanner schoolDays={schoolDays} isCurrentMonth={isCurrentMonth} />
 
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-muted-foreground">
         {SCHOOL_DAY_STATUSES.map((status) => (

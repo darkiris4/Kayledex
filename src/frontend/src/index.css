@@ -220,3 +220,123 @@ body[data-bg="orange"] {
 :root.dark body[data-bg="orange"] {
   background: linear-gradient(135deg, oklch(0.19 0.05 55), oklch(0.16 0.06 35));
 }
+
+/* Axolotl banner (Calendar page) — purely cosmetic, plain CSS animation, no JS loop
+   or rAF, so it costs nothing worth worrying about on any device. */
+.axolotl {
+  position: absolute;
+  top: 0.5rem;
+  left: 0%;
+  width: 72px;
+  animation: axolotl-roam 22s ease-in-out infinite;
+}
+@keyframes axolotl-roam {
+  0% {
+    left: 0%;
+    transform: scaleX(1);
+  }
+  48% {
+    left: calc(100% - 72px);
+    transform: scaleX(1);
+  }
+  50% {
+    left: calc(100% - 72px);
+    transform: scaleX(-1);
+  }
+  98% {
+    left: 0%;
+    transform: scaleX(-1);
+  }
+  100% {
+    left: 0%;
+    transform: scaleX(1);
+  }
+}
+
+.axolotl-body {
+  animation: axolotl-bob 0.7s ease-in-out infinite alternate;
+}
+.axolotl--happy .axolotl-body,
+.axolotl--streak .axolotl-body {
+  animation-duration: 0.4s;
+}
+@keyframes axolotl-bob {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-4px);
+  }
+}
+
+.axolotl-gill-left {
+  transform-origin: 15px 22px;
+  animation: axolotl-gill-sway 1.4s ease-in-out infinite alternate;
+}
+.axolotl-gill-right {
+  transform-origin: 75px 22px;
+  animation: axolotl-gill-sway 1.4s ease-in-out infinite alternate-reverse;
+}
+@keyframes axolotl-gill-sway {
+  0% {
+    transform: rotate(-4deg);
+  }
+  100% {
+    transform: rotate(6deg);
+  }
+}
+
+.axolotl-leg-back {
+  animation: axolotl-leg-step 0.7s ease-in-out infinite;
+}
+.axolotl-leg-front {
+  animation: axolotl-leg-step 0.7s ease-in-out infinite reverse;
+}
+@keyframes axolotl-leg-step {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(3px);
+  }
+}
+
+.axolotl-sparkles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.axolotl-sparkle {
+  position: absolute;
+  font-size: 0.9rem;
+  color: var(--primary);
+  opacity: 0;
+  animation: axolotl-sparkle 1.6s ease-in-out infinite;
+}
+.axolotl-sparkle-1 {
+  top: -6px;
+  left: 8px;
+  animation-delay: 0s;
+}
+.axolotl-sparkle-2 {
+  top: 2px;
+  left: 52px;
+  animation-delay: 0.5s;
+}
+.axolotl-sparkle-3 {
+  top: -10px;
+  left: 30px;
+  animation-delay: 1s;
+}
+@keyframes axolotl-sparkle {
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale(0.6) translateY(4px);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1) translateY(-6px);
+  }
+}
