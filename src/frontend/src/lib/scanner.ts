@@ -2,6 +2,9 @@
 // on first use, so the ~13MB OpenCV bundle never touches anyone who doesn't open the
 // document scanner. Both expose plain globals (window.cv, window.jscanify) rather than
 // being real ES modules, to sidestep bundling an Emscripten build through Vite/Rollup.
+//
+// opencv.js alone is ~13MB - on a slow mobile connection that can take well over a
+// minute, so callers get progress (0-1) rather than a single opaque "loading" state.
 
 declare global {
   interface Window {
@@ -12,7 +15,7 @@ declare global {
 
 let loadPromise: Promise<void> | null = null
 
-function loadScript(src: string): Promise<void> {
+function loadScriptTag(src: string): Promise<void> {
   return new Promise((resolve, reject) => {
     const script = document.createElement("script")
     script.src = src
@@ -22,19 +25,50 @@ function loadScript(src: string): Promise<void> {
   })
 }
 
-export function loadScanner(): Promise<void> {
+// Fetches the URL first (reporting byte progress) purely to warm the HTTP cache, then
+// appends a <script src> tag for actual execution - loading via a real script tag
+// (rather than eval-ing the fetched text) avoids CSP/eval complications, and the
+// script tag's own request is served from the cache we just warmed.
+async function loadScriptWithProgress(
+  src: string,
+  onProgress?: (fraction: number) => void,
+): Promise<void> {
+  const res = await fetch(src)
+  if (!res.ok) throw new Error(`Failed to load ${src}`)
+  const total = Number(res.headers.get("content-length")) || null
+  if (res.body && onProgress) {
+    const reader = res.body.getReader()
+    let loaded = 0
+    for (;;) {
+      const { done, value } = await reader.read()
+      if (done) break
+      loaded += value.length
+      onProgress(total ? loaded / total : 0)
+    }
+  } else {
+    await res.arrayBuffer()
+  }
+  onProgress?.(1)
+  await loadScriptTag(src)
+}
+
+export function loadScanner(onProgress?: (fraction: number) => void): Promise<void> {
   if (loadPromise) return loadPromise
 
   loadPromise = (async () => {
-    await loadScript("/vendor/opencv.js")
+    // opencv.js is ~13MB and jscanify.js is ~8KB - weight progress accordingly rather
+    // than reporting 50% after the tiny file and 50% for the huge one.
+    await loadScriptWithProgress("/vendor/opencv.js", (f) => onProgress?.(f * 0.97))
     // opencv.js's UMD build assigns window.cv synchronously, but the WASM runtime
-    // underneath initializes asynchronously — cv.Mat etc. aren't usable until then.
+    // underneath initializes asynchronously - cv.Mat etc. aren't usable until then.
     if (!window.cv.Mat) {
       await new Promise<void>((resolve) => {
         window.cv.onRuntimeInitialized = () => resolve()
       })
     }
-    await loadScript("/vendor/jscanify.js")
+    onProgress?.(0.98)
+    await loadScriptWithProgress("/vendor/jscanify.js")
+    onProgress?.(1)
   })().catch((err) => {
     loadPromise = null
     throw err
