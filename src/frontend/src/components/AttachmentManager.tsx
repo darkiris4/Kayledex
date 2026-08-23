@@ -2,6 +2,8 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { api, type Attachment, type AttachmentAssociationType } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { DocumentScannerDialog } from "@/components/DocumentScannerDialog"
+import { AttachmentPreviewDialog } from "@/components/AttachmentPreviewDialog"
+import { compressImage } from "@/lib/imageCompression"
 
 interface AttachmentManagerProps {
   associatedType: AttachmentAssociationType
@@ -12,6 +14,7 @@ export function AttachmentManager({ associatedType, associatedId }: AttachmentMa
   const [attachments, setAttachments] = useState<Attachment[]>([])
   const [uploading, setUploading] = useState(false)
   const [scannerOpen, setScannerOpen] = useState(false)
+  const [previewing, setPreviewing] = useState<Attachment | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const reload = useCallback(() => {
@@ -25,7 +28,8 @@ export function AttachmentManager({ associatedType, associatedId }: AttachmentMa
   async function uploadFile(file: File) {
     setUploading(true)
     try {
-      await api.attachments.upload(associatedType, associatedId, file)
+      const compressed = await compressImage(file)
+      await api.attachments.upload(associatedType, associatedId, compressed)
       reload()
     } catch (err) {
       window.alert(err instanceof Error ? err.message : "Upload failed")
@@ -51,14 +55,9 @@ export function AttachmentManager({ associatedType, associatedId }: AttachmentMa
     <div className="flex flex-wrap items-center gap-1">
       {attachments.map((a) => (
         <span key={a.id} className="flex items-center gap-1 rounded bg-muted px-1.5 py-0.5 text-xs">
-          <a
-            href={api.attachments.downloadUrl(a.id)}
-            target="_blank"
-            rel="noreferrer"
-            className="hover:underline"
-          >
+          <button type="button" onClick={() => setPreviewing(a)} className="hover:underline">
             📎 {a.filename}
-          </a>
+          </button>
           <button
             type="button"
             onClick={() => handleDelete(a.id)}
@@ -102,6 +101,10 @@ export function AttachmentManager({ associatedType, associatedId }: AttachmentMa
         open={scannerOpen}
         onOpenChange={setScannerOpen}
         onScanned={uploadFile}
+      />
+      <AttachmentPreviewDialog
+        attachment={previewing}
+        onOpenChange={(open) => !open && setPreviewing(null)}
       />
     </div>
   )

@@ -132,8 +132,16 @@ export function Calendar() {
                     key={dateStr}
                     onClick={() => setSelectedDate(dateStr)}
                     style={color ? { backgroundColor: hexToRgba(color, 0.15) } : undefined}
-                    className={`flex h-14 flex-col items-center justify-center gap-1 rounded-md border border-transparent text-sm hover:border-border ${!color ? "hover:bg-muted" : ""}`}
+                    className={`relative flex h-14 flex-col items-center justify-center gap-1 rounded-md border border-transparent text-sm hover:border-border ${!color ? "hover:bg-muted" : ""}`}
                   >
+                    {schoolDay?.has_assessment && (
+                      <span
+                        title="Assessment logged"
+                        className="absolute right-1 top-1 text-xs leading-none"
+                      >
+                        📝
+                      </span>
+                    )}
                     <span>{date.getDate()}</span>
                     {schoolDay &&
                       (schoolDay.total_minutes > 0 ? (
@@ -167,6 +175,10 @@ export function Calendar() {
             {STATUS_LABELS[status]}
           </span>
         ))}
+        <span className="flex items-center gap-1.5">
+          <span className="text-xs leading-none">📝</span>
+          Assessment logged
+        </span>
       </div>
 
       {selectedDate && activeSchoolYear && (

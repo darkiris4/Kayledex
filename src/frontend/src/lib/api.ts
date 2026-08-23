@@ -62,6 +62,7 @@ export interface SchoolDay {
 
 export interface SchoolDaySummary extends SchoolDay {
   total_minutes: number
+  has_assessment: boolean
 }
 
 export interface InstructionRecord {
@@ -296,6 +297,7 @@ export const api = {
     deletePhoto: (studentId: string) =>
       request<Student>(`/students/${studentId}/photo`, { method: "DELETE" }),
     photoUrl: (studentId: string) => `/api/students/${studentId}/photo`,
+    delete: (id: string) => request<void>(`/students/${id}`, { method: "DELETE" }),
   },
   schoolYears: {
     list: (studentId?: string) =>
@@ -304,6 +306,7 @@ export const api = {
       request<SchoolYear>("/school-years", { method: "POST", body: JSON.stringify(data) }),
     update: (id: string, data: Partial<SchoolYear>) =>
       request<SchoolYear>(`/school-years/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
+    delete: (id: string) => request<void>(`/school-years/${id}`, { method: "DELETE" }),
   },
   subjects: {
     list: (familyId?: string) =>
@@ -369,6 +372,9 @@ export const api = {
     list: (schoolYearId: string) => request<Course[]>(`/courses?school_year_id=${schoolYearId}`),
     create: (data: Partial<Course>) =>
       request<Course>("/courses", { method: "POST", body: JSON.stringify(data) }),
+    update: (id: string, data: Partial<Course>) =>
+      request<Course>(`/courses/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
+    delete: (id: string) => request<void>(`/courses/${id}`, { method: "DELETE" }),
   },
   curricula: {
     list: (courseId: string) => request<Curriculum[]>(`/curricula?course_id=${courseId}`),
@@ -436,6 +442,7 @@ export const api = {
     },
     delete: (id: string) => request<void>(`/attachments/${id}`, { method: "DELETE" }),
     downloadUrl: (id: string) => `/api/attachments/${id}/download`,
+    previewUrl: (id: string) => `/api/attachments/${id}/preview`,
   },
   settings: {
     get: (familyId: string) => request<Settings>(`/settings?family_id=${familyId}`),

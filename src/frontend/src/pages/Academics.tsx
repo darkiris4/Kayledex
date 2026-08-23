@@ -62,7 +62,7 @@ export function Academics() {
       ) : (
         <div className="flex flex-col gap-4">
           {courses.map((course) => (
-            <CourseCard key={course.id} course={course} subjects={subjects} />
+            <CourseCard key={course.id} course={course} subjects={subjects} onChanged={reloadCourses} />
           ))}
         </div>
       )}

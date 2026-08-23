@@ -28,6 +28,7 @@ import {
 import { AddGradeScaleDialog } from "@/components/AddGradeScaleDialog"
 import { HelpTooltip } from "@/components/HelpTooltip"
 import { SCHOOL_DAY_STATUSES, STATUS_LABELS, DEFAULT_STATUS_COLORS } from "@/lib/schoolDayStatus"
+import { compressImage } from "@/lib/imageCompression"
 
 function FieldLabel({ children, help }: { children: React.ReactNode; help: string }) {
   return (
@@ -210,7 +211,8 @@ export function Settings() {
 
   async function uploadReportLogo(file: File) {
     if (!activeStudent) return
-    await api.settings.uploadReportLogo(activeStudent.family_id, file)
+    const compressed = await compressImage(file, 800, 0.9)
+    await api.settings.uploadReportLogo(activeStudent.family_id, compressed)
     load()
   }
 

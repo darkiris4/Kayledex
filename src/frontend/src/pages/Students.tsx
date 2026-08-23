@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { AddStudentDialog } from "@/components/AddStudentDialog"
 import { AddSchoolYearDialog } from "@/components/AddSchoolYearDialog"
+import { compressImage } from "@/lib/imageCompression"
 
 function StudentSchoolYears({ student }: { student: Student }) {
   const [years, setYears] = useState<SchoolYear[]>([])
@@ -18,6 +19,18 @@ function StudentSchoolYears({ student }: { student: Student }) {
   useEffect(() => {
     reload()
   }, [reload])
+
+  async function handleDelete(year: SchoolYear) {
+    if (!window.confirm(`Delete school year "${year.name}"? This also removes its courses, curricula, and logged activities.`)) {
+      return
+    }
+    try {
+      await api.schoolYears.delete(year.id)
+      reload()
+    } catch (err) {
+      window.alert(err instanceof Error ? err.message : "Failed to delete")
+    }
+  }
 
   return (
     <div className="flex flex-col gap-2">
@@ -50,6 +63,16 @@ function StudentSchoolYears({ student }: { student: Student }) {
                     </Button>
                   }
                 />
+                {years.length > 1 && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-6 px-2 text-xs text-muted-foreground hover:text-destructive"
+                    onClick={() => handleDelete(y)}
+                  >
+                    Delete
+                  </Button>
+                )}
               </span>
             </li>
           ))}
@@ -66,7 +89,8 @@ function StudentPhoto({ student, onChanged }: { student: Student; onChanged: () 
   async function handleUpload(file: File) {
     setUploading(true)
     try {
-      await api.students.uploadPhoto(student.id, file)
+      const compressed = await compressImage(file, 800, 0.85)
+      await api.students.uploadPhoto(student.id, compressed)
       onChanged()
     } finally {
       setUploading(false)
@@ -130,6 +154,18 @@ function StudentCard({ family_id, student, onChanged }: { family_id: string; stu
     onChanged()
   }
 
+  async function handleDelete() {
+    if (
+      !window.confirm(
+        `Permanently delete ${student.name} and everything tied to them — school years, courses, curricula, logged activities, assessments, and attachments? This cannot be undone.`,
+      )
+    ) {
+      return
+    }
+    await api.students.delete(student.id)
+    onChanged()
+  }
+
   return (
     <Card>
       <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
@@ -160,6 +196,14 @@ function StudentCard({ family_id, student, onChanged }: { family_id: string; stu
           />
           <Button size="sm" variant="ghost" onClick={toggleActive}>
             {student.active ? "Deactivate" : "Reactivate"}
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="text-muted-foreground hover:text-destructive"
+            onClick={handleDelete}
+          >
+            Delete
           </Button>
         </div>
       </CardHeader>

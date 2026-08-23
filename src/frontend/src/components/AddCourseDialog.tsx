@@ -1,5 +1,5 @@
-import { useState } from "react"
-import { api, type Subject } from "@/lib/api"
+import { useEffect, useState } from "react"
+import { api, type Course, type Subject } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -17,21 +17,32 @@ interface AddCourseDialogProps {
   schoolYearId: string
   subjects: Subject[]
   onAdded: () => void
+  course?: Course
+  trigger?: React.ReactNode
 }
 
-export function AddCourseDialog({ schoolYearId, subjects, onAdded }: AddCourseDialogProps) {
+export function AddCourseDialog({ schoolYearId, subjects, onAdded, course, trigger }: AddCourseDialogProps) {
   const [open, setOpen] = useState(false)
-  const [subjectId, setSubjectId] = useState("")
-  const [name, setName] = useState("")
+  const [subjectId, setSubjectId] = useState(course?.subject_id ?? "")
+  const [name, setName] = useState(course?.name ?? "")
   const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    if (open) {
+      setSubjectId(course?.subject_id ?? "")
+      setName(course?.name ?? "")
+    }
+  }, [open, course])
 
   async function handleSave() {
     if (!subjectId || !name) return
     setSaving(true)
     try {
-      await api.courses.create({ school_year_id: schoolYearId, subject_id: subjectId, name })
-      setName("")
-      setSubjectId("")
+      if (course) {
+        await api.courses.update(course.id, { subject_id: subjectId, name })
+      } else {
+        await api.courses.create({ school_year_id: schoolYearId, subject_id: subjectId, name })
+      }
       setOpen(false)
       onAdded()
     } finally {
@@ -42,13 +53,15 @@ export function AddCourseDialog({ schoolYearId, subjects, onAdded }: AddCourseDi
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" variant="outline">
-          + Add Course
-        </Button>
+        {trigger ?? (
+          <Button size="sm" variant="outline">
+            + Add Course
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add Course</DialogTitle>
+          <DialogTitle>{course ? "Edit Course" : "Add Course"}</DialogTitle>
         </DialogHeader>
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
