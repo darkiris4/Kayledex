@@ -63,6 +63,7 @@ export interface SchoolDay {
 export interface SchoolDaySummary extends SchoolDay {
   total_minutes: number
   has_assessment: boolean
+  has_lesson_completed: boolean
 }
 
 export interface InstructionRecord {
@@ -137,6 +138,7 @@ export interface Lesson {
   description: string | null
   expected_duration_minutes: number | null
   completion_status: LessonStatus
+  completed_date: string | null
   notes: string | null
 }
 

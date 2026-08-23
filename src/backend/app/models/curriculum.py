@@ -43,6 +43,10 @@ class Lesson(Base, UUIDPKMixin, TimestampMixin):
     completion_status: Mapped[LessonStatus] = mapped_column(
         Enum(LessonStatus, name="lesson_status"), default=LessonStatus.not_started
     )
+    # Auto-set to today when completion_status transitions to complete (see
+    # api/lesson.py), so a completed lesson counts as a school day the same way an
+    # assessment does - not user-entered in the common case, but overridable.
+    completed_date: Mapped[date | None] = mapped_column(Date, default=None)
     notes: Mapped[str | None] = mapped_column(String(2000), default=None)
 
     curriculum: Mapped["Curriculum"] = relationship(back_populates="lessons")

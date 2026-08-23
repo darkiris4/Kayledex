@@ -68,6 +68,11 @@ export function CurriculumCard({ curriculum, onProgressChanged }: CurriculumCard
                 {lesson.number != null ? `${lesson.number}. ` : ""}
                 {lesson.name}
               </span>
+              {lesson.completion_status === "complete" && lesson.completed_date && (
+                <span className="text-xs text-muted-foreground">
+                  (completed {lesson.completed_date})
+                </span>
+              )}
             </li>
           ))}
         </ul>

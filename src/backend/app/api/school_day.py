@@ -6,7 +6,17 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.core.db import get_db
-from app.models import Assessment, InstructionRecord, SchoolDay, SchoolDayStatus, SchoolYear
+from app.models import (
+    Assessment,
+    Course,
+    Curriculum,
+    InstructionRecord,
+    Lesson,
+    LessonStatus,
+    SchoolDay,
+    SchoolDayStatus,
+    SchoolYear,
+)
 from app.schemas.school_day import (
     SchoolDayCreate,
     SchoolDayRead,
@@ -98,6 +108,20 @@ def list_school_days_summary(
         else set()
     )
 
+    lesson_completed_dates = set(
+        db.scalars(
+            select(Lesson.completed_date)
+            .join(Curriculum, Lesson.curriculum_id == Curriculum.id)
+            .join(Course, Curriculum.course_id == Course.id)
+            .where(
+                Course.school_year_id == school_year_id,
+                Lesson.completion_status == LessonStatus.complete,
+                Lesson.completed_date >= start,
+                Lesson.completed_date <= end,
+            )
+        ).all()
+    )
+
     return [
         SchoolDaySummaryRead(
             id=school_day.id,
@@ -107,6 +131,7 @@ def list_school_days_summary(
             notes=school_day.notes,
             total_minutes=total_minutes,
             has_assessment=school_day.date in assessment_dates,
+            has_lesson_completed=school_day.date in lesson_completed_dates,
         )
         for school_day, total_minutes in rows
     ]

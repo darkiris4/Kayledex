@@ -142,6 +142,14 @@ export function Calendar() {
                         📝
                       </span>
                     )}
+                    {schoolDay?.has_lesson_completed && (
+                      <span
+                        title="Lesson completed"
+                        className="absolute left-1 top-1 text-xs leading-none"
+                      >
+                        ✅
+                      </span>
+                    )}
                     <span>{date.getDate()}</span>
                     {schoolDay &&
                       (schoolDay.total_minutes > 0 ? (
@@ -178,6 +186,10 @@ export function Calendar() {
         <span className="flex items-center gap-1.5">
           <span className="text-xs leading-none">📝</span>
           Assessment logged
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="text-xs leading-none">✅</span>
+          Lesson completed
         </span>
       </div>
 
