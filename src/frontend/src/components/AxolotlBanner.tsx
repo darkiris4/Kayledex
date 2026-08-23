@@ -57,7 +57,7 @@ export function AxolotlBanner({ schoolDays, isCurrentMonth }: AxolotlBannerProps
   }, [schoolDays, isCurrentMonth])
 
   return (
-    <div className="relative h-20 w-full overflow-hidden" aria-hidden="true">
+    <div className="relative h-40 w-full overflow-hidden" aria-hidden="true">
       <div className={`axolotl axolotl--${mood}`}>
         <AxolotlSvg mood={mood} />
         {mood !== "idle" && (
@@ -74,7 +74,7 @@ export function AxolotlBanner({ schoolDays, isCurrentMonth }: AxolotlBannerProps
 
 function AxolotlSvg({ mood }: { mood: Mood }) {
   return (
-    <svg viewBox="0 0 100 70" width="72" height="50" className="axolotl-body">
+    <svg viewBox="0 0 100 70" width="144" height="100" className="axolotl-body">
       <ellipse className="axolotl-leg axolotl-leg-back" cx="30" cy="58" rx="7" ry="5" fill="#f3a6c1" />
       <ellipse className="axolotl-leg axolotl-leg-front" cx="70" cy="58" rx="7" ry="5" fill="#f3a6c1" />
       <path d="M8 45 Q -8 40 4 55 Q 10 50 8 45 Z" fill="#f7bcd4" />

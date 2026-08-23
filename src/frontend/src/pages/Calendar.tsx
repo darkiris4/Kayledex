@@ -175,8 +175,6 @@ export function Calendar() {
         </Card>
       )}
 
-      <AxolotlBanner schoolDays={schoolDays} isCurrentMonth={isCurrentMonth} />
-
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-muted-foreground">
         {SCHOOL_DAY_STATUSES.map((status) => (
           <span key={status} className="flex items-center gap-1.5">
@@ -196,6 +194,8 @@ export function Calendar() {
           Lesson completed
         </span>
       </div>
+
+      <AxolotlBanner schoolDays={schoolDays} isCurrentMonth={isCurrentMonth} />
 
       {selectedDate && activeSchoolYear && (
         <DayDetailDialog

@@ -225,9 +225,9 @@ body[data-bg="orange"] {
    or rAF, so it costs nothing worth worrying about on any device. */
 .axolotl {
   position: absolute;
-  top: 0.5rem;
+  top: 1rem;
   left: 0%;
-  width: 72px;
+  width: 144px;
   animation: axolotl-roam 22s ease-in-out infinite;
 }
 @keyframes axolotl-roam {
@@ -236,11 +236,11 @@ body[data-bg="orange"] {
     transform: scaleX(1);
   }
   48% {
-    left: calc(100% - 72px);
+    left: calc(100% - 144px);
     transform: scaleX(1);
   }
   50% {
-    left: calc(100% - 72px);
+    left: calc(100% - 144px);
     transform: scaleX(-1);
   }
   98% {
@@ -265,7 +265,7 @@ body[data-bg="orange"] {
     transform: translateY(0);
   }
   100% {
-    transform: translateY(-4px);
+    transform: translateY(-8px);
   }
 }
 
@@ -309,24 +309,24 @@ body[data-bg="orange"] {
 }
 .axolotl-sparkle {
   position: absolute;
-  font-size: 0.9rem;
+  font-size: 1.8rem;
   color: var(--primary);
   opacity: 0;
   animation: axolotl-sparkle 1.6s ease-in-out infinite;
 }
 .axolotl-sparkle-1 {
-  top: -6px;
-  left: 8px;
+  top: -12px;
+  left: 16px;
   animation-delay: 0s;
 }
 .axolotl-sparkle-2 {
-  top: 2px;
-  left: 52px;
+  top: 4px;
+  left: 104px;
   animation-delay: 0.5s;
 }
 .axolotl-sparkle-3 {
-  top: -10px;
-  left: 30px;
+  top: -20px;
+  left: 60px;
   animation-delay: 1s;
 }
 @keyframes axolotl-sparkle {
