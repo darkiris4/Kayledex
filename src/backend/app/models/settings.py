@@ -3,7 +3,7 @@ from __future__ import annotations
 import enum
 import uuid
 
-from sqlalchemy import Boolean, Enum, ForeignKey, String
+from sqlalchemy import JSON, Boolean, Enum, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, TimestampMixin, UUIDPKMixin
@@ -30,6 +30,9 @@ class Settings(Base, UUIDPKMixin, TimestampMixin):
     report_branding_enabled: Mapped[bool] = mapped_column(Boolean, default=True, server_default="true")
     report_footer_text: Mapped[str | None] = mapped_column(String(500), default=None)
     parent_educator_name: Mapped[str | None] = mapped_column(String(200), default=None)
+    # Maps a SchoolDayStatus value (e.g. "instructional") to a hex color string. Missing
+    # keys fall back to the frontend's built-in defaults — this only stores overrides.
+    calendar_status_colors: Mapped[dict[str, str] | None] = mapped_column(JSON, default=None)
 
     family: Mapped["Family"] = relationship(back_populates="settings")
     active_grade_scale: Mapped["GradeScale | None"] = relationship()

@@ -6,6 +6,7 @@ from fastapi.staticfiles import StaticFiles
 from sqlalchemy.exc import IntegrityError
 
 from app.api import (
+    admin,
     assessment,
     attachment,
     compliance,
@@ -58,6 +59,7 @@ app.include_router(compliance.router)
 app.include_router(reports.router)
 app.include_router(attachment.router)
 app.include_router(export.router)
+app.include_router(admin.router)
 
 
 @app.get("/api/health")

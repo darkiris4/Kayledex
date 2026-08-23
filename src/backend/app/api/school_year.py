@@ -1,4 +1,5 @@
 import uuid
+from datetime import date as date_type
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -8,6 +9,45 @@ from app.models import SchoolYear
 from app.schemas.school_year import SchoolYearCreate, SchoolYearRead, SchoolYearUpdate
 
 router = APIRouter(prefix="/api/school-years", tags=["school-years"])
+
+
+def _has_leap_day(start: date_type, end: date_type) -> bool:
+    for year in range(start.year, end.year + 1):
+        try:
+            feb29 = date_type(year, 2, 29)
+        except ValueError:
+            continue
+        if start <= feb29 <= end:
+            return True
+    return False
+
+
+def _validate_date_range(start: date_type, end: date_type) -> None:
+    if end < start:
+        raise HTTPException(422, "end_date must be on or after start_date")
+    span_days = (end - start).days + 1
+    max_days = 366 if _has_leap_day(start, end) else 365
+    if span_days > max_days:
+        raise HTTPException(422, f"A school year can span at most {max_days} days for this date range")
+
+
+def _validate_no_overlap(
+    db: Session, student_id: uuid.UUID, start: date_type, end: date_type, exclude_id: uuid.UUID | None
+) -> None:
+    query = db.query(SchoolYear).filter(
+        SchoolYear.student_id == student_id,
+        SchoolYear.start_date <= end,
+        SchoolYear.end_date >= start,
+    )
+    if exclude_id is not None:
+        query = query.filter(SchoolYear.id != exclude_id)
+    conflict = query.first()
+    if conflict:
+        raise HTTPException(
+            422,
+            f'Overlaps existing school year "{conflict.name}" '
+            f"({conflict.start_date} to {conflict.end_date})",
+        )
 
 
 @router.get("", response_model=list[SchoolYearRead])
@@ -20,6 +60,8 @@ def list_school_years(student_id: uuid.UUID | None = None, db: Session = Depends
 
 @router.post("", response_model=SchoolYearRead, status_code=201)
 def create_school_year(payload: SchoolYearCreate, db: Session = Depends(get_db)):
+    _validate_date_range(payload.start_date, payload.end_date)
+    _validate_no_overlap(db, payload.student_id, payload.start_date, payload.end_date, exclude_id=None)
     school_year = SchoolYear(**payload.model_dump())
     db.add(school_year)
     db.commit()
@@ -42,7 +84,15 @@ def update_school_year(
     school_year = db.get(SchoolYear, school_year_id)
     if not school_year:
         raise HTTPException(404, "School year not found")
-    for key, value in payload.model_dump(exclude_unset=True).items():
+
+    updates = payload.model_dump(exclude_unset=True)
+    new_start = updates.get("start_date", school_year.start_date)
+    new_end = updates.get("end_date", school_year.end_date)
+    if "start_date" in updates or "end_date" in updates:
+        _validate_date_range(new_start, new_end)
+        _validate_no_overlap(db, school_year.student_id, new_start, new_end, exclude_id=school_year.id)
+
+    for key, value in updates.items():
         setattr(school_year, key, value)
     db.commit()
     db.refresh(school_year)

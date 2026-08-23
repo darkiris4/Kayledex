@@ -15,6 +15,7 @@ class SettingsUpdate(BaseModel):
     report_branding_enabled: bool | None = None
     report_footer_text: str | None = None
     parent_educator_name: str | None = None
+    calendar_status_colors: dict[str, str] | None = None
 
 
 class SettingsRead(BaseModel):
@@ -29,3 +30,4 @@ class SettingsRead(BaseModel):
     report_branding_enabled: bool
     report_footer_text: str | None
     parent_educator_name: str | None
+    calendar_status_colors: dict[str, str] | None

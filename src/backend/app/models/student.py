@@ -19,6 +19,7 @@ class Student(Base, UUIDPKMixin, TimestampMixin):
     student_identifier: Mapped[str | None] = mapped_column(String(100), default=None)
     start_date: Mapped[date | None] = mapped_column(Date, default=None)
     active: Mapped[bool] = mapped_column(Boolean, default=True)
+    photo_path: Mapped[str | None] = mapped_column(String(500), default=None)
 
     family: Mapped["Family"] = relationship(back_populates="students")
     school_years: Mapped[list["SchoolYear"]] = relationship(
