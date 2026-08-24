@@ -223,6 +223,16 @@ export function Settings() {
     load()
   }
 
+  async function deleteGradeScale(gs: GradeScale) {
+    const isActive = gs.id === settings?.active_grade_scale_id
+    const warning = isActive
+      ? `"${gs.name}" is the active grade scale — deleting it will leave assessments and report cards without a letter grade until you pick another one. Delete anyway?`
+      : `Delete "${gs.name}"?`
+    if (!window.confirm(warning)) return
+    await api.gradeScales.delete(gs.id)
+    load()
+  }
+
   async function toggleReportBranding(enabled: boolean) {
     if (!activeStudent) return
     await api.settings.update(activeStudent.family_id, { report_branding_enabled: enabled })
@@ -287,8 +297,6 @@ export function Settings() {
   const activeProfileName = schoolYear?.compliance_profile_id
     ? profiles.find((p) => p.id === schoolYear.compliance_profile_id)?.name
     : null
-
-  const activeScale = gradeScales.find((gs) => gs.id === settings.active_grade_scale_id)
 
   return (
     <div className="flex flex-col gap-4">
@@ -488,7 +496,7 @@ export function Settings() {
           {gradeScales.length === 0 ? (
             <p className="text-sm text-muted-foreground">No grade scales yet.</p>
           ) : (
-            <div className="flex flex-wrap items-start gap-6">
+            <>
               <div className="flex flex-col gap-2">
                 <FieldLabel help="Which letter-grade scale is used to grade assessments and report cards. Change it any time — every past assessment's displayed grade updates immediately, since grades are computed on the fly rather than stored.">
                   Active Grade Scale
@@ -506,22 +514,54 @@ export function Settings() {
                   </SelectContent>
                 </Select>
               </div>
-              {activeScale && (
-                <div className="flex flex-col gap-1 text-sm">
-                  <span className="text-xs font-medium text-muted-foreground">
-                    {activeScale.name} bands
-                  </span>
-                  {activeScale.bands
-                    .slice()
-                    .sort((a, b) => b.min_percentage - a.min_percentage)
-                    .map((band) => (
-                      <span key={band.id}>
-                        {band.letter}: {band.min_percentage}&ndash;{band.max_percentage}%
+
+              <div className="flex flex-col gap-2">
+                {gradeScales.map((gs) => (
+                  <div
+                    key={gs.id}
+                    className="flex flex-wrap items-center justify-between gap-2 rounded-md border p-2"
+                  >
+                    <div className="flex flex-col gap-0.5 text-sm">
+                      <span className="font-medium">
+                        {gs.name}
+                        {gs.id === settings.active_grade_scale_id && (
+                          <span className="ml-2 text-xs font-normal text-muted-foreground">
+                            (active)
+                          </span>
+                        )}
                       </span>
-                    ))}
-                </div>
-              )}
-            </div>
+                      <span className="text-xs text-muted-foreground">
+                        {gs.bands
+                          .slice()
+                          .sort((a, b) => b.min_percentage - a.min_percentage)
+                          .map((band) => `${band.letter}: ${band.min_percentage}–${band.max_percentage}%`)
+                          .join(", ")}
+                      </span>
+                    </div>
+                    <div className="flex gap-2">
+                      <AddGradeScaleDialog
+                        familyId={activeStudent.family_id}
+                        scale={gs}
+                        onAdded={load}
+                        trigger={
+                          <Button size="sm" variant="outline">
+                            Edit
+                          </Button>
+                        }
+                      />
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-muted-foreground hover:text-destructive"
+                        onClick={() => deleteGradeScale(gs)}
+                      >
+                        Delete
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
           )}
         </CardContent>
       </Card>

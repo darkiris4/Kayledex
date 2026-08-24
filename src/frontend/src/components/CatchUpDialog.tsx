@@ -56,6 +56,15 @@ export function CatchUpDialog({ onLogged }: CatchUpDialogProps) {
     setWeekdays((prev) => (prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]))
   }
 
+  // Keeps the date range/weekdays, since a catch-up session is usually backfilling the same
+  // stretch of time across several subjects one at a time.
+  function logAnotherSubject() {
+    setSubjectId("")
+    setActivityDescription("")
+    setDurationMinutes("")
+    setResult(null)
+  }
+
   async function handleSave() {
     if (!activeStudent || !subjectId || !startDate || !endDate || weekdays.length === 0) return
     setSaving(true)
@@ -165,7 +174,7 @@ export function CatchUpDialog({ onLogged }: CatchUpDialogProps) {
               <DurationInput valueMinutes={durationMinutes} onChange={setDurationMinutes} idPrefix="catchup-duration" />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="flex flex-col gap-2">
                 <Label>From</Label>
                 <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
@@ -197,7 +206,12 @@ export function CatchUpDialog({ onLogged }: CatchUpDialogProps) {
 
         <DialogFooter>
           {result ? (
-            <Button onClick={() => setOpen(false)}>Done</Button>
+            <>
+              <Button variant="outline" onClick={logAnotherSubject}>
+                Log Another Subject
+              </Button>
+              <Button onClick={() => setOpen(false)}>Done</Button>
+            </>
           ) : (
             <>
               <Button variant="outline" onClick={() => setOpen(false)}>

@@ -1,5 +1,5 @@
-import { useState } from "react"
-import { api } from "@/lib/api"
+import { useEffect, useState } from "react"
+import { api, type GradeScale } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -20,16 +20,34 @@ interface BandRow {
 
 const DEFAULT_ROW: BandRow = { letter: "", min_percentage: "", max_percentage: "" }
 
+function bandsToRows(scale?: GradeScale): BandRow[] {
+  if (!scale || scale.bands.length === 0) return [{ ...DEFAULT_ROW }]
+  return scale.bands.map((b) => ({
+    letter: b.letter,
+    min_percentage: String(b.min_percentage),
+    max_percentage: String(b.max_percentage),
+  }))
+}
+
 interface AddGradeScaleDialogProps {
   familyId: string
   onAdded: () => void
+  scale?: GradeScale
+  trigger?: React.ReactNode
 }
 
-export function AddGradeScaleDialog({ familyId, onAdded }: AddGradeScaleDialogProps) {
+export function AddGradeScaleDialog({ familyId, onAdded, scale, trigger }: AddGradeScaleDialogProps) {
   const [open, setOpen] = useState(false)
-  const [name, setName] = useState("")
-  const [rows, setRows] = useState<BandRow[]>([{ ...DEFAULT_ROW }])
+  const [name, setName] = useState(scale?.name ?? "")
+  const [rows, setRows] = useState<BandRow[]>(() => bandsToRows(scale))
   const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    if (open) {
+      setName(scale?.name ?? "")
+      setRows(bandsToRows(scale))
+    }
+  }, [open, scale])
 
   function updateRow(index: number, field: keyof BandRow, value: string) {
     setRows((prev) => prev.map((r, i) => (i === index ? { ...r, [field]: value } : r)))
@@ -46,9 +64,13 @@ export function AddGradeScaleDialog({ familyId, onAdded }: AddGradeScaleDialogPr
     if (!name || bands.length === 0) return
     setSaving(true)
     try {
-      await api.gradeScales.create({ family_id: familyId, name, bands })
-      setName("")
-      setRows([{ ...DEFAULT_ROW }])
+      if (scale) {
+        await api.gradeScales.update(scale.id, { name, bands })
+      } else {
+        await api.gradeScales.create({ family_id: familyId, name, bands })
+        setName("")
+        setRows([{ ...DEFAULT_ROW }])
+      }
       setOpen(false)
       onAdded()
     } finally {
@@ -59,13 +81,15 @@ export function AddGradeScaleDialog({ familyId, onAdded }: AddGradeScaleDialogPr
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" variant="outline">
-          + New Grade Scale
-        </Button>
+        {trigger ?? (
+          <Button size="sm" variant="outline">
+            + New Grade Scale
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>New Grade Scale</DialogTitle>
+          <DialogTitle>{scale ? "Edit Grade Scale" : "New Grade Scale"}</DialogTitle>
         </DialogHeader>
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">

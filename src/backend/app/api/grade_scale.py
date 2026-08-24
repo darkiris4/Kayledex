@@ -48,8 +48,15 @@ def update_grade_scale(
     grade_scale = db.get(GradeScale, grade_scale_id)
     if not grade_scale:
         raise HTTPException(404, "Grade scale not found")
-    for key, value in payload.model_dump(exclude_unset=True).items():
+    data = payload.model_dump(exclude_unset=True)
+    bands = data.pop("bands", None)
+    category_weights = data.pop("category_weights", None)
+    for key, value in data.items():
         setattr(grade_scale, key, value)
+    if bands is not None:
+        grade_scale.bands = [GradeScaleBand(**b) for b in bands]
+    if category_weights is not None:
+        grade_scale.category_weights = [GradeCategoryWeight(**w) for w in category_weights]
     db.commit()
     db.refresh(grade_scale)
     return grade_scale

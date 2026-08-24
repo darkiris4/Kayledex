@@ -262,7 +262,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
                 />
               </div>
             )}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="flex flex-col gap-2">
                 <Label>School Year Starts</Label>
                 <Input type="date" value={yearStart} onChange={(e) => setYearStart(e.target.value)} />
@@ -487,7 +487,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div className="flex flex-col gap-2">
                     <Label>From</Label>
                     <Input type="date" value={catchUpStart} onChange={(e) => setCatchUpStart(e.target.value)} />

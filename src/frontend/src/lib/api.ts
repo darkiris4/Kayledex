@@ -389,6 +389,7 @@ export const api = {
       request<Lesson>("/lessons", { method: "POST", body: JSON.stringify(data) }),
     update: (id: string, data: Partial<Lesson>) =>
       request<Lesson>(`/lessons/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
+    delete: (id: string) => request<void>(`/lessons/${id}`, { method: "DELETE" }),
   },
   gradeScales: {
     list: (familyId: string) => request<GradeScale[]>(`/grade-scales?family_id=${familyId}`),
@@ -399,6 +400,16 @@ export const api = {
       bands?: Omit<GradeScaleBand, "id">[]
       category_weights?: Omit<GradeCategoryWeight, "id">[]
     }) => request<GradeScale>("/grade-scales", { method: "POST", body: JSON.stringify(data) }),
+    update: (
+      id: string,
+      data: {
+        name?: string
+        weighted?: boolean
+        bands?: Omit<GradeScaleBand, "id">[]
+        category_weights?: Omit<GradeCategoryWeight, "id">[]
+      },
+    ) => request<GradeScale>(`/grade-scales/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
+    delete: (id: string) => request<void>(`/grade-scales/${id}`, { method: "DELETE" }),
   },
   assessments: {
     list: (studentId: string, date?: string) =>

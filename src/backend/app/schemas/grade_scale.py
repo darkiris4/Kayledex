@@ -50,6 +50,11 @@ class GradeScaleCreate(GradeScaleBase):
 class GradeScaleUpdate(BaseModel):
     name: str | None = None
     weighted: bool | None = None
+    # Omitted (None) leaves bands/category_weights untouched; an explicit list (including an
+    # empty one) fully replaces them, since a partial per-band PATCH has no sane merge semantics
+    # (bands aren't individually identified by the client).
+    bands: list[GradeScaleBandCreate] | None = None
+    category_weights: list[GradeCategoryWeightCreate] | None = None
 
 
 class GradeScaleRead(GradeScaleBase):
