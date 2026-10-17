@@ -59,13 +59,13 @@ export function AddAssessmentDialog({
   }, [subjectId])
 
   async function handleSave() {
-    if (!subjectId || !name) return
+    if (!subjectId || !courseId || !name) return
     setSaving(true)
     try {
       await api.assessments.create({
         student_id: studentId,
         subject_id: subjectId,
-        course_id: courseId || null,
+        course_id: courseId,
         name,
         date,
         type,
@@ -135,7 +135,7 @@ export function AddAssessmentDialog({
             </Select>
             {subjectId && coursesForSubject.length === 0 && (
               <p className="text-xs text-muted-foreground">
-                This won't show up on the report card until you add a course for this subject.
+                Add a course for this subject on the Academics page before logging an assessment.
               </p>
             )}
           </div>
@@ -191,7 +191,7 @@ export function AddAssessmentDialog({
           <Button variant="outline" onClick={() => setOpen(false)}>
             Cancel
           </Button>
-          <Button onClick={handleSave} disabled={!subjectId || !name || saving}>
+          <Button onClick={handleSave} disabled={!subjectId || !courseId || !name || saving}>
             {saving ? "Saving…" : "Save"}
           </Button>
         </DialogFooter>
