@@ -42,6 +42,11 @@ class DashboardSummary(BaseModel):
     this_year: DashboardYear
 
 
+class DashboardSubjectGrade(BaseModel):
+    name: str
+    grade: str
+
+
 class DashboardGrades(BaseModel):
     student: str
     grade_level: str | None
@@ -49,5 +54,4 @@ class DashboardGrades(BaseModel):
     assessments: int
     overall_percentage: float | None
     overall_letter: str | None
-    subjects: str | None
-    grades: str | None
+    subjects: list[DashboardSubjectGrade]

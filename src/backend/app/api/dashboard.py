@@ -18,6 +18,7 @@ from app.models import (
 )
 from app.schemas.dashboard import (
     DashboardGrades,
+    DashboardSubjectGrade,
     DashboardSummary,
     DashboardToday,
     DashboardTodayRecord,
@@ -137,7 +138,7 @@ def _current_school_year(db: Session, student_id: uuid.UUID) -> SchoolYear | Non
 
 @router.get("/grades", response_model=DashboardGrades)
 def get_dashboard_grades(student_id: uuid.UUID, db: Session = Depends(get_db)):
-    """Current-year grade averages as flat values, for dashboards that read single fields."""
+    """Current-year grade averages: overall, and one entry per active subject (`-` when ungraded)."""
     student = db.get(Student, student_id)
     if not student:
         raise HTTPException(404, "Student not found")
@@ -163,16 +164,21 @@ def get_dashboard_grades(student_id: uuid.UUID, db: Session = Depends(get_db)):
         letter_for_percentage(overall_percentage, student, db) if overall_percentage is not None else None
     )
 
-    subject_grades = []
-    for subject_id, values in by_subject.items():
+    active_subjects = db.scalars(
+        select(Subject).where(Subject.family_id == student.family_id, Subject.active.is_(True))
+    ).all()
+    subject_ids = {subject.id for subject in active_subjects} | set(by_subject)
+    subjects = []
+    for subject_id in subject_ids:
         subject = db.get(Subject, subject_id)
-        average = round(sum(values) / len(values), 1)
-        letter = letter_for_percentage(average, student, db)
-        name = subject.name.strip() if subject else "Unknown"
-        subject_grades.append((name, letter or f"{average:g}%"))
-    subject_grades.sort()
-    subjects = ", ".join(name for name, _ in subject_grades) or None
-    grades = ", ".join(grade for _, grade in subject_grades) or None
+        values = by_subject.get(subject_id)
+        if values:
+            average = round(sum(values) / len(values), 1)
+            grade = letter_for_percentage(average, student, db) or f"{average:g}%"
+        else:
+            grade = "-"
+        subjects.append(DashboardSubjectGrade(name=subject.name.strip(), grade=grade))
+    subjects.sort(key=lambda entry: entry.name)
 
     return DashboardGrades(
         student=student.name,
@@ -182,5 +188,4 @@ def get_dashboard_grades(student_id: uuid.UUID, db: Session = Depends(get_db)):
         overall_percentage=overall_percentage,
         overall_letter=overall_letter,
         subjects=subjects,
-        grades=grades,
     )

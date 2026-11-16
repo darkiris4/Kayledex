@@ -85,8 +85,7 @@ def test_grades_average_overall_and_per_subject(client, db):
     assert body["assessments"] == 3
     assert body["overall_percentage"] == 90.3
     assert body["overall_letter"] == "A"
-    assert body["subjects"] == "Math, Reading"
-    assert body["grades"] == "A, B"
+    assert body["subjects"] == [{"name": "Math", "grade": "A"}, {"name": "Reading", "grade": "B"}]
 
 
 def test_grades_ignore_assessments_outside_the_school_year(client, db):
@@ -113,8 +112,7 @@ def test_grades_skip_assessments_without_points(client, db):
     assert body["assessments"] == 0
     assert body["overall_percentage"] is None
     assert body["overall_letter"] is None
-    assert body["subjects"] is None
-    assert body["grades"] is None
+    assert body["subjects"] == [{"name": "Math", "grade": "-"}]
 
 
 def test_grades_without_a_current_school_year(client, db):
@@ -127,8 +125,7 @@ def test_grades_without_a_current_school_year(client, db):
 
     assert body["school_year"] is None
     assert body["assessments"] == 0
-    assert body["subjects"] is None
-    assert body["grades"] is None
+    assert body["subjects"] == [{"name": "Math", "grade": "-"}]
 
 
 def test_grades_without_an_active_scale_show_percentages(client, db):
@@ -141,8 +138,7 @@ def test_grades_without_an_active_scale_show_percentages(client, db):
 
     assert body["overall_percentage"] == 92.0
     assert body["overall_letter"] is None
-    assert body["subjects"] == "Math"
-    assert body["grades"] == "92%"
+    assert body["subjects"] == [{"name": "Math", "grade": "92%"}]
 
 
 def test_grades_trim_subject_names(client, db):
@@ -153,8 +149,21 @@ def test_grades_trim_subject_names(client, db):
 
     body = client.get("/api/dashboard/grades", params={"student_id": str(student.id)}).json()
 
-    assert body["subjects"] == "Math"
-    assert body["grades"] == "A"
+    assert body["subjects"] == [{"name": "Math", "grade": "A"}]
+
+
+def test_grades_list_ungraded_active_subjects_and_omit_inactive_ones(client, db):
+    family, student = _make_student(db)
+    math = _subject(db, family, "Math")
+    _subject(db, family, "Art")
+    gym = _subject(db, family, "Gym")
+    gym.active = False
+    _grade(db, student, math, 95, 100)
+    db.commit()
+
+    body = client.get("/api/dashboard/grades", params={"student_id": str(student.id)}).json()
+
+    assert body["subjects"] == [{"name": "Art", "grade": "-"}, {"name": "Math", "grade": "A"}]
 
 
 def test_grades_unknown_student_is_404(client):
