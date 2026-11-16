@@ -40,3 +40,13 @@ class DashboardSummary(BaseModel):
     today: DashboardToday
     this_week: DashboardWeek
     this_year: DashboardYear
+
+
+class DashboardGrades(BaseModel):
+    student: str
+    grade_level: str | None
+    school_year: str | None
+    assessments: int
+    overall_percentage: float | None
+    overall_letter: str | None
+    grades: str | None

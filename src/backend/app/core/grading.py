@@ -8,20 +8,15 @@ from sqlalchemy.orm import Session
 from app.models import Assessment, GradeScaleBand, Settings, Student
 
 
-def compute_grade(assessment: Assessment, db: Session) -> tuple[float | None, str | None]:
-    """percentage/letter_grade are never stored — see AssessmentRead's docstring."""
-    if assessment.points_earned is None or not assessment.points_possible:
-        return None, None
-    percentage = round(float(assessment.points_earned) / float(assessment.points_possible) * 100, 2)
-
-    student = db.get(Student, assessment.student_id)
+def letter_for_percentage(percentage: float, student: Student | None, db: Session) -> str | None:
+    """The letter on the family's active grade scale that covers `percentage`, if any."""
     settings = (
         db.query(Settings).filter(Settings.family_id == student.family_id).first()
         if student
         else None
     )
     if not settings or not settings.active_grade_scale_id:
-        return percentage, None
+        return None
 
     band = (
         db.query(GradeScaleBand)
@@ -32,4 +27,14 @@ def compute_grade(assessment: Assessment, db: Session) -> tuple[float | None, st
         )
         .first()
     )
-    return percentage, band.letter if band else None
+    return band.letter if band else None
+
+
+def compute_grade(assessment: Assessment, db: Session) -> tuple[float | None, str | None]:
+    """percentage/letter_grade are never stored — see AssessmentRead's docstring."""
+    if assessment.points_earned is None or not assessment.points_possible:
+        return None, None
+    percentage = round(float(assessment.points_earned) / float(assessment.points_possible) * 100, 2)
+
+    student = db.get(Student, assessment.student_id)
+    return percentage, letter_for_percentage(percentage, student, db)
