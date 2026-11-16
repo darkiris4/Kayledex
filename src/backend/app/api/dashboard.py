@@ -6,8 +6,24 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.core.db import get_db
-from app.models import InstructionRecord, SchoolDay, SchoolDayStatus, SchoolYear, Student, Subject
-from app.schemas.dashboard import DashboardSummary, DashboardToday, DashboardTodayRecord, DashboardWeek, DashboardYear
+from app.core.grading import compute_grade, letter_for_percentage
+from app.models import (
+    Assessment,
+    InstructionRecord,
+    SchoolDay,
+    SchoolDayStatus,
+    SchoolYear,
+    Student,
+    Subject,
+)
+from app.schemas.dashboard import (
+    DashboardGrades,
+    DashboardSummary,
+    DashboardToday,
+    DashboardTodayRecord,
+    DashboardWeek,
+    DashboardYear,
+)
 
 router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
 
@@ -105,4 +121,62 @@ def get_dashboard(student_id: uuid.UUID, db: Session = Depends(get_db)):
             total_minutes=week_total_minutes,
         ),
         this_year=DashboardYear(instructional_days=year_instructional_days),
+    )
+
+
+def _current_school_year(db: Session, student_id: uuid.UUID) -> SchoolYear | None:
+    today = date.today()
+    return db.scalar(
+        select(SchoolYear).where(
+            SchoolYear.student_id == student_id,
+            SchoolYear.start_date <= today,
+            SchoolYear.end_date >= today,
+        )
+    )
+
+
+@router.get("/grades", response_model=DashboardGrades)
+def get_dashboard_grades(student_id: uuid.UUID, db: Session = Depends(get_db)):
+    """Current-year grade averages as flat values, for dashboards that read single fields."""
+    student = db.get(Student, student_id)
+    if not student:
+        raise HTTPException(404, "Student not found")
+
+    school_year = _current_school_year(db, student_id)
+    by_subject: dict[uuid.UUID, list[float]] = {}
+    if school_year is not None:
+        assessments = db.scalars(
+            select(Assessment).where(
+                Assessment.student_id == student_id,
+                Assessment.date >= school_year.start_date,
+                Assessment.date <= school_year.end_date,
+            )
+        ).all()
+        for assessment in assessments:
+            percentage, _ = compute_grade(assessment, db)
+            if percentage is not None:
+                by_subject.setdefault(assessment.subject_id, []).append(percentage)
+
+    percentages = [p for values in by_subject.values() for p in values]
+    overall_percentage = round(sum(percentages) / len(percentages), 1) if percentages else None
+    overall_letter = (
+        letter_for_percentage(overall_percentage, student, db) if overall_percentage is not None else None
+    )
+
+    subject_grades = []
+    for subject_id, values in by_subject.items():
+        subject = db.get(Subject, subject_id)
+        average = round(sum(values) / len(values), 1)
+        letter = letter_for_percentage(average, student, db)
+        subject_grades.append((subject.name if subject else "Unknown", letter or f"{average:g}%"))
+    grades = ", ".join(f"{name} {grade}" for name, grade in sorted(subject_grades)) or None
+
+    return DashboardGrades(
+        student=student.name,
+        grade_level=student.grade_level,
+        school_year=school_year.name if school_year else None,
+        assessments=len(percentages),
+        overall_percentage=overall_percentage,
+        overall_letter=overall_letter,
+        grades=grades,
     )
