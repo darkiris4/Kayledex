@@ -168,8 +168,11 @@ def get_dashboard_grades(student_id: uuid.UUID, db: Session = Depends(get_db)):
         subject = db.get(Subject, subject_id)
         average = round(sum(values) / len(values), 1)
         letter = letter_for_percentage(average, student, db)
-        subject_grades.append((subject.name if subject else "Unknown", letter or f"{average:g}%"))
-    grades = ", ".join(f"{name} {grade}" for name, grade in sorted(subject_grades)) or None
+        name = subject.name.strip() if subject else "Unknown"
+        subject_grades.append((name, letter or f"{average:g}%"))
+    subject_grades.sort()
+    subjects = ", ".join(name for name, _ in subject_grades) or None
+    grades = ", ".join(grade for _, grade in subject_grades) or None
 
     return DashboardGrades(
         student=student.name,
@@ -178,5 +181,6 @@ def get_dashboard_grades(student_id: uuid.UUID, db: Session = Depends(get_db)):
         assessments=len(percentages),
         overall_percentage=overall_percentage,
         overall_letter=overall_letter,
+        subjects=subjects,
         grades=grades,
     )

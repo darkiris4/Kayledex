@@ -49,4 +49,5 @@ class DashboardGrades(BaseModel):
     assessments: int
     overall_percentage: float | None
     overall_letter: str | None
+    subjects: str | None
     grades: str | None

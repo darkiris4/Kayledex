@@ -85,7 +85,8 @@ def test_grades_average_overall_and_per_subject(client, db):
     assert body["assessments"] == 3
     assert body["overall_percentage"] == 90.3
     assert body["overall_letter"] == "A"
-    assert body["grades"] == "Math A, Reading B"
+    assert body["subjects"] == "Math, Reading"
+    assert body["grades"] == "A, B"
 
 
 def test_grades_ignore_assessments_outside_the_school_year(client, db):
@@ -112,6 +113,7 @@ def test_grades_skip_assessments_without_points(client, db):
     assert body["assessments"] == 0
     assert body["overall_percentage"] is None
     assert body["overall_letter"] is None
+    assert body["subjects"] is None
     assert body["grades"] is None
 
 
@@ -125,6 +127,7 @@ def test_grades_without_a_current_school_year(client, db):
 
     assert body["school_year"] is None
     assert body["assessments"] == 0
+    assert body["subjects"] is None
     assert body["grades"] is None
 
 
@@ -138,7 +141,20 @@ def test_grades_without_an_active_scale_show_percentages(client, db):
 
     assert body["overall_percentage"] == 92.0
     assert body["overall_letter"] is None
-    assert body["grades"] == "Math 92%"
+    assert body["subjects"] == "Math"
+    assert body["grades"] == "92%"
+
+
+def test_grades_trim_subject_names(client, db):
+    family, student = _make_student(db)
+    math = _subject(db, family, " Math ")
+    _grade(db, student, math, 95, 100)
+    db.commit()
+
+    body = client.get("/api/dashboard/grades", params={"student_id": str(student.id)}).json()
+
+    assert body["subjects"] == "Math"
+    assert body["grades"] == "A"
 
 
 def test_grades_unknown_student_is_404(client):
